@@ -12,22 +12,22 @@ dst = 'out/'
 src = 'data/'
 
 stages = {
-	'nocak': {
-		'name': 'Výsledková listina páteční noční dvouhodinovky',
+	'nocni_2H': {
+		'name': '6. STB 2020 – výsledková listina páteční noční dvouhodinovky',
 		'short': 'Stage 1 – Friday night 2hrs',
 		'start': '21:00:00',
 		'penalty': 10,
 		'cps': {1: 60, 2: 90, 3: 30, 4: 90, 5: 40, 6: 50, 7: 40, 8: 70, 9: 50, 10: 90, 11: 90, 12: 90, 13: 70, 14: 90, 15: 90},
 	},
-	'petihod': {
-		'name': 'Výsledková listina sobotní pětihodinovky',
+	'denni_5H': {
+		'name': '6. STB 2020 – výsledková listina sobotní pětihodinovky',
 		'short': 'Stage 2 – Saturday 5hrs',
 		'start': '10:30:00',
 		'penalty': 20,
 		'cps': {1: 90, 2: 0, 3: 0, 4: 70, 5: 90, 6: 70, 7: 60, 8: 70, 9: 40, 10: 80, 11: 40, 12: 30, 13: 90, 14: 40, 15: 40, 16: 30, 17: 40, 18: 80, 19: 30, 20: 40, 21: 80, 22: 50, 23: 60, 24: 50, 25: 80, 26: 80, 27: 60, 28: 90, 29: 60, 30: 80, 31: 50, 32: 90, 33: 80},
 	},
-	'ctyrhod': {
-		'name': 'Výsledková listina nedělní čtyřhodinovky',
+	'historicky_4H': {
+		'name': '6. STB 2020 – výsledková listina nedělní čtyřhodinovky',
 		'short': 'Stage 3 – Sunday 4hrs',
 		'start': '09:00:00',
 		'penalty': 20,
@@ -37,9 +37,9 @@ stages = {
 
 sheets = {
 	'CSV Import': 'entries',
-	'PRINT E1': 'nocak',
-	'PRINT E2': 'petihod',
-	'PRINT E3': 'ctyrhod',
+	'PRINT E1': 'nocni_2H',
+	'PRINT E2': 'denni_5H',
+	'PRINT E3': 'historicky_4H',
 }
 
 genders = ['X', 'M', 'W']
@@ -138,12 +138,12 @@ def print_total():
 	meta = ET.Element('meta', attrib={'charset': 'utf-8'})
 	head.append(meta)
 	title = ET.Element('title')
-	title.text = 'Final results'
+	title.text = 'Výsledky STB 2020'
 	head.append(title)
 	body = ET.Element('body')
 	html.append(body)
 	h1 = ET.Element('h1')
-	h1.text = 'Final results'
+	h1.text = 'Výsledky STB 2020'
 	body.append(h1)
 	table = ET.Element('table', attrib={'class': 'foo'})
 	body.append(table)
@@ -250,7 +250,7 @@ def write_style():
 
 
 def main():
-	# csv_from_excel('Vysledky_Bloudeni_2019.xlsx', sheets)
+	# csv_from_excel('Vysledky_Bloudeni_2020.xlsx', sheets)
 
 	with open(src + 'entries.csv') as entries_file:
 		reader = csv.DictReader(entries_file)
