@@ -116,7 +116,7 @@ def print_stage(stage_name, stage, teams):
 
 		delta = parse_time(row['time'])
 		if delta == NO_DURATION:
-			row['time'] = 'N/A'
+			row['time'] = '00:00:00'
 
 		tr = ET.Element('tr', attrib={'class': 'gender-' + row['gender']})
 		tbody.append(tr)
