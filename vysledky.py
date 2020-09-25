@@ -17,21 +17,21 @@ stages = {
 		'short': 'Stage 1 – Friday night 2hrs',
 		'start': '21:00:00',
 		'penalty': 10,
-		'cps': {1: 60, 2: 90, 3: 30, 4: 90, 5: 40, 6: 50, 7: 40, 8: 70, 9: 50, 10: 90, 11: 90, 12: 90, 13: 70, 14: 90, 15: 90},
+		'cps': {1: 50, 2: 90, 3: 60, 4: 70, 5: 40, 6: 60, 7: 50, 8: 50, 9: 30, 10: 40, 11: 40, 12: 60, 13: 30, 14: 40, 15: 90},
 	},
 	'denni_5H': {
 		'name': '6. STB 2020 – výsledková listina sobotní pětihodinovky',
 		'short': 'Stage 2 – Saturday 5hrs',
 		'start': '10:30:00',
 		'penalty': 20,
-		'cps': {1: 90, 2: 0, 3: 0, 4: 70, 5: 90, 6: 70, 7: 60, 8: 70, 9: 40, 10: 80, 11: 40, 12: 30, 13: 90, 14: 40, 15: 40, 16: 30, 17: 40, 18: 80, 19: 30, 20: 40, 21: 80, 22: 50, 23: 60, 24: 50, 25: 80, 26: 80, 27: 60, 28: 90, 29: 60, 30: 80, 31: 50, 32: 90, 33: 80},
+		'cps': {1: 90, 2: 90, 3: 30, 4: 50, 5: 60, 6: 50, 7: 30, 8: 90, 9: 50, 10: 30, 11: 50, 12: 80, 13: 50, 14: 70, 15: 40, 16: 50, 17: 50, 18: 40, 19: 50, 20: 90, 21: 40, 22: 40, 23: 80, 24: 90, 25: 70, 26: 70},
 	},
 	'historicky_4H': {
 		'name': '6. STB 2020 – výsledková listina nedělní čtyřhodinovky',
 		'short': 'Stage 3 – Sunday 4hrs',
 		'start': '09:00:00',
 		'penalty': 20,
-		'cps': {1: 90, 2: 70, 3: 90, 4: 30, 5: 50, 6: 90, 7: 60, 8: 90, 9: 90, 10: 90},
+		'cps': {1: 90, 2: 90, 3: 40, 4: 40, 5: 30, 6: 50, 7: 80, 8: 70, 9: 90},
 	}
 }
 
@@ -62,6 +62,19 @@ headers = [
 ]
 
 event_teams = {}
+
+NO_DURATION = timedelta(hours=0)
+
+def parse_time(time_cell):
+	try:
+		t = datetime.strptime(time_cell, '%H:%M:%S')
+		delta = timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
+	except:
+		delta = NO_DURATION
+
+	# delta = timedelta(seconds=float(row['time'])*60*60*24)
+
+	return delta
 
 def print_stage(stage_name, stage, teams):
 	html = ET.Element('html')
@@ -98,6 +111,13 @@ def print_stage(stage_name, stage, teams):
 
 	positions = pos()
 	for row in teams:
+		if row['id'] == '0':
+			continue
+
+		delta = parse_time(row['time'])
+		if delta == NO_DURATION:
+			row['time'] = 'N/A'
+
 		tr = ET.Element('tr', attrib={'class': 'gender-' + row['gender']})
 		tbody.append(tr)
 		vals = list(positions.get(row)) + [row['id'], row['team'], row['gender'] + row['age'], row['si'], row['member1lst'] + ' ' + row['member1fst'], row['member2lst'] + ' ' + row['member2fst'], row['time'], row['penaltymin'], row['penaltypts'], row['pts'], row['total']] + list(map(lambda cp: row[str(cp)], stage['cps'].keys()))
@@ -106,9 +126,6 @@ def print_stage(stage_name, stage, teams):
 			tr.append(td)
 			td.text = val
 
-		t = datetime.strptime(row['time'], '%H:%M:%S')
-		delta = timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
-		# delta = timedelta(seconds=float(row['time'])*60*60*24)
 		event_teams[row['id']]['stages'][stage_name] = {
 			'time': delta,
 			'total': int(row['total']),
@@ -199,7 +216,7 @@ class pos:
 		prank = ''
 		srank = ''
 
-		if not event_teams[row['id']]['ignore']:
+		if row['id'] != '0' and not event_teams[row['id']]['ignore']:
 			primary = row['gender'] + 'O'
 			secondary = row['gender'] + row['age']
 			self.positions[primary] += 1
@@ -249,8 +266,15 @@ def write_style():
 		style_file.write(style)
 
 
+def clean_overtimes(row):
+	if parse_time(row['time']) == NO_DURATION:
+		row['pts'] = '0'
+		row['total'] = '0'
+	return row
+
+
 def main():
-	# csv_from_excel('Vysledky_Bloudeni_2020.xlsx', sheets)
+	csv_from_excel('Vysledky_Bloudeni_2020.xlsx', sheets)
 
 	with open(src + 'entries.csv') as entries_file:
 		reader = csv.DictReader(entries_file)
@@ -271,8 +295,9 @@ def main():
 
 	for stage_name, stage in stages.items():
 		with open(src + stage_name + '.csv') as stage_file:
-			reader = csv.DictReader(stage_file)
-			teams = sorted(reader, key=lambda row: (row['gender'], -int(row['total']), row['time']))
+			teams = csv.DictReader(stage_file)
+			teams = map(clean_overtimes, teams)
+			teams = sorted(teams, key=lambda row: (row['gender'], -int(row['total']), parse_time(row['time'])))
 			print_stage(stage_name, stage, teams)
 	print_total()
 
