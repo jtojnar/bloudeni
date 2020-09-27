@@ -272,6 +272,23 @@ def clean_overtimes(row):
 		row['total'] = '0'
 	return row
 
+def sort_order_teams(row):
+	'''Generate a value, whose comparisons will determine the order of teams in stage results.'''
+
+	return (
+		# Results are clustered into gender categories.
+		row['gender'],
+		# Within them, the highest number of points wins.
+		-int(row['total']),
+		# When there is a tie, shortest time goes first.
+		# People not running would have time=0 but we are already putting to the bottom
+		# because they also have total=0.
+		parse_time(row['time']),
+		# People running out of competition will be listed in the place
+		# they would be if they competed but below of those who competed in case of a tie.
+		# They will just not be assigned ranking by `pos` class.
+		int(event_teams.get(row['id'], {'ignore': True})['ignore']),
+	)
 
 def main():
 	csv_from_excel('Vysledky_Bloudeni_2020.xlsx', sheets)
@@ -297,7 +314,7 @@ def main():
 		with open(src + stage_name + '.csv') as stage_file:
 			teams = csv.DictReader(stage_file)
 			teams = map(clean_overtimes, teams)
-			teams = sorted(teams, key=lambda row: (row['gender'], -int(row['total']), parse_time(row['time'])))
+			teams = sorted(teams, key=sort_order_teams)
 			print_stage(stage_name, stage, teams)
 	print_total()
 
