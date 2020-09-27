@@ -231,7 +231,7 @@ class pos:
 def csv_from_excel(file, sheets):
 	for sheet, target in sheets.items():
 		with open(src + target + '.csv','wb') as out:
-			subprocess.run(['in2csv', '--sheet', sheet, file], stdout=out)
+			subprocess.run(['in2csv', '--no-inference', '--sheet', sheet, file], stdout=out)
 
 
 def write_style():
