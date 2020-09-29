@@ -13,21 +13,21 @@ dst = 'out/'
 src = 'data/'
 
 stages = OrderedDict([
-	('nocni_2H', {
+	('Vysledky_N2H', {
 		'name': '6. STB 2020 – výsledková listina páteční noční dvouhodinovky',
 		'short': 'Stage 1 – Friday night 2hrs',
 		'start': '21:00:00',
 		'penalty': 10,
 		'cps': {1: 50, 2: 90, 3: 60, 4: 70, 5: 40, 6: 60, 7: 50, 8: 50, 9: 30, 10: 40, 11: 40, 12: 60, 13: 30, 14: 40, 15: 90},
 	}),
-	('denni_5H', {
+	('Vysledky_D5H', {
 		'name': '6. STB 2020 – výsledková listina sobotní pětihodinovky',
 		'short': 'Stage 2 – Saturday 5hrs',
 		'start': '10:30:00',
 		'penalty': 20,
 		'cps': {1: 90, 2: 90, 3: 30, 4: 50, 5: 60, 6: 50, 7: 30, 8: 90, 9: 50, 10: 30, 11: 50, 12: 80, 13: 50, 14: 70, 15: 40, 16: 50, 17: 50, 18: 40, 19: 50, 20: 90, 21: 40, 22: 40, 23: 80, 24: 90, 25: 70, 26: 70},
 	}),
-	('historicky_4H', {
+	('Vysledky_H4H', {
 		'name': '6. STB 2020 – výsledková listina nedělní čtyřhodinovky',
 		'short': 'Stage 3 – Sunday 4hrs',
 		'start': '09:00:00',
@@ -38,9 +38,9 @@ stages = OrderedDict([
 
 sheets = {
 	'CSV Import': 'entries',
-	'PRINT E1': 'nocni_2H',
-	'PRINT E2': 'denni_5H',
-	'PRINT E3': 'historicky_4H',
+	'PRINT E1': 'Vysledky_N2H',
+	'PRINT E2': 'Vysledky_D5H',
+	'PRINT E3': 'Vysledky_H4H',
 }
 
 genders = ['X', 'M', 'W']
