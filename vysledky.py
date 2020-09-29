@@ -249,6 +249,7 @@ def write_style():
 	td, th {
 		border: 1px solid black;
 		padding: 0.2em;
+		text-align: left;
 	}
 
 	tbody tr:nth-child(odd) {
