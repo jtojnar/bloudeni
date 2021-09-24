@@ -14,25 +14,25 @@ src = 'data/'
 
 stages = OrderedDict([
 	('Vysledky_N2H', {
-		'name': '6. STB 2020 – výsledková listina páteční noční dvouhodinovky',
+		'name': '7. STB 2021 – výsledková listina páteční noční dvouhodinovky',
 		'short': 'Stage 1 – Friday night 2hrs',
 		'start': '21:00:00',
 		'penalty': 10,
-		'cps': {1: 50, 2: 90, 3: 60, 4: 70, 5: 40, 6: 60, 7: 50, 8: 50, 9: 30, 10: 40, 11: 40, 12: 60, 13: 30, 14: 40, 15: 90},
+		'cps': {'1': 90, '2': 90, '3': 60, '4': 60, '5': 70, '6': 40, '7': 40, '8': 30, '9': 50, '10': 40, '11': 70, '12': 30, '13': 90, '14': 90},
 	}),
 	('Vysledky_D5H', {
-		'name': '6. STB 2020 – výsledková listina sobotní pětihodinovky',
+		'name': '7. STB 2021 – výsledková listina sobotní pětihodinovky',
 		'short': 'Stage 2 – Saturday 5hrs',
 		'start': '10:30:00',
 		'penalty': 20,
-		'cps': {1: 90, 2: 90, 3: 30, 4: 50, 5: 60, 6: 50, 7: 30, 8: 90, 9: 50, 10: 30, 11: 50, 12: 80, 13: 50, 14: 70, 15: 40, 16: 50, 17: 50, 18: 40, 19: 50, 20: 90, 21: 40, 22: 40, 23: 80, 24: 90, 25: 70, 26: 70},
+		'cps': {'1': 90, '2': 90, '3': 80, '4': 40, '5': 50, '6': 60, '7': 70, '8': 70, '9': 90, '10': 80, '11': 60, '12': 30, '13': 30, '14': 90, '15': 30, '16': 30, '17': 50, '18': 50, '19': 50, '20': 60, '21': 90, '22': 90, '23': 50, '24': 60, '25': 80},
 	}),
 	('Vysledky_H4H', {
-		'name': '6. STB 2020 – výsledková listina nedělní čtyřhodinovky',
+		'name': '7. STB 2021 – výsledková listina nedělní čtyřhodinovky',
 		'short': 'Stage 3 – Sunday 4hrs',
 		'start': '09:00:00',
 		'penalty': 20,
-		'cps': {1: 90, 2: 90, 3: 40, 4: 40, 5: 30, 6: 50, 7: 80, 8: 70, 9: 90},
+		'cps': {'1': 80, '2': 60, '3': 90, '4': 120, '5': 60, '6': 30, '7': 30, '8': 40, '9': 40, '10': 30, '11': 40, '12': 30, '13': 40, '14': 30, '15': 70},
 	})
 ])
 
@@ -156,12 +156,12 @@ def print_total():
 	meta = ET.Element('meta', attrib={'charset': 'utf-8'})
 	head.append(meta)
 	title = ET.Element('title')
-	title.text = 'Výsledky STB 2020'
+	title.text = 'Výsledky STB 2021'
 	head.append(title)
 	body = ET.Element('body')
 	html.append(body)
 	h1 = ET.Element('h1')
-	h1.text = 'Výsledky STB 2020'
+	h1.text = 'Výsledky STB 2021'
 	body.append(h1)
 	table = ET.Element('table', attrib={'class': 'foo'})
 	body.append(table)
@@ -293,7 +293,7 @@ def sort_order_teams(row):
 	)
 
 def main():
-	csv_from_excel('Vysledky_Bloudeni_2020.xlsx', sheets)
+	csv_from_excel('Vysledky_Bloudeni_2021.xlsx', sheets)
 
 	with open(src + 'entries.csv') as entries_file:
 		reader = csv.DictReader(entries_file)
