@@ -20,9 +20,9 @@ stages = OrderedDict(event['stages'])
 
 sheets = {
 	'CSV Import': 'entries',
-	'PRINT E1': 'Vysledky_N2H',
-	'PRINT E2': 'Vysledky_D5H',
-	'PRINT E3': 'Vysledky_H4H',
+	'PRINT E1': 'N2H',
+	'PRINT E2': 'D5H',
+	'PRINT E3': 'H4H',
 }
 
 genders = ['X', 'M', 'W']
@@ -59,7 +59,7 @@ def parse_time(time_cell):
 
 	return delta
 
-def print_stage(stage_name, stage, teams):
+def print_stage(stage_name, stage, teams, punches):
 	html = ET.Element('html')
 	head = ET.Element('head')
 	html.append(head)
@@ -103,7 +103,8 @@ def print_stage(stage_name, stage, teams):
 
 		tr = ET.Element('tr', attrib={'class': 'gender-' + row['gender']})
 		tbody.append(tr)
-		vals = list(positions.get(row)) + [row['id'], row['team'], row['gender'] + row['age'], row['si'], row['member1lst'] + ' ' + row['member1fst'], row['member2lst'] + ' ' + row['member2fst'], row['time'], row['penaltymin'], row['penaltypts'], row['pts'], row['total']] + list(map(lambda cp: row[str(cp)], stage['cps'].keys()))
+		punches_points = list(map(lambda cp: int(int(cp) in punches.get(str(row['id']), [])) * stage['cps'][cp], stage['cps'].keys()))
+		vals = list(positions.get(row)) + [row['id'], row['team'], row['gender'] + row['age'], row['si'], row['member1lst'] + ' ' + row['member1fst'], row['member2lst'] + ' ' + row['member2fst'], row['time'], row['penaltymin'], row['penaltypts'], str(sum(punches_points)), row['total']] + list(map(str, punches_points))
 		for val in vals:
 			td = ET.Element('td')
 			tr.append(td)
@@ -114,7 +115,7 @@ def print_stage(stage_name, stage, teams):
 			'total': int(row['total']),
 		}
 
-	ET.ElementTree(html).write(dst + stage_name + '.html', encoding='utf8', method='html')
+	ET.ElementTree(html).write(dst + 'Vysledky_' + stage_name + '.html', encoding='utf8', method='html')
 
 
 headers_tot = [
@@ -213,7 +214,7 @@ class pos:
 
 def csv_from_excel(file, sheets):
 	for sheet, target in sheets.items():
-		with open(src + target + '.csv','wb') as out:
+		with open(src + 'Vysledky_' + target + '.csv','wb') as out:
 			subprocess.run(['in2csv', '--no-inference', '--sheet', sheet, file], stdout=out)
 
 
@@ -295,11 +296,13 @@ def main():
 				}
 
 	for stage_name, stage in stages.items():
-		with open(src + stage_name + '.csv') as stage_file:
+		with open(src + 'Vysledky_' + stage_name + '.csv') as stage_file, \
+			open(src + 'punches-' + stage_name + '.json') as punches_file:
 			teams = csv.DictReader(stage_file)
+			punches = json.load(punches_file)
 			teams = map(clean_overtimes, teams)
 			teams = sorted(teams, key=sort_order_teams)
-			print_stage(stage_name, stage, teams)
+			print_stage(stage_name, stage, teams, punches)
 	print_total()
 
 	write_style()

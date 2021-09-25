@@ -1,21 +1,21 @@
 {
 	"name": "7. STB 2021",
 	"stages": {
-		"Vysledky_N2H": {
+		"N2H": {
 			"name": "výsledková listina páteční noční dvouhodinovky",
 			"short": "Stage 1 – Friday night 2hrs",
 			"start": "21:00:00",
 			"penalty": 10,
 			"cps": {"1": 90, "2": 90, "3": 60, "4": 60, "5": 70, "6": 40, "7": 40, "8": 30, "9": 50, "10": 40, "11": 70, "12": 30, "13": 90, "14": 90}
 		},
-		"Vysledky_D5H": {
+		"D5H": {
 			"name": "výsledková listina sobotní pětihodinovky",
 			"short": "Stage 2 – Saturday 5hrs",
 			"start": "10:30:00",
 			"penalty": 20,
 			"cps": {"1": 90, "2": 90, "3": 80, "4": 40, "5": 50, "6": 60, "7": 70, "8": 70, "9": 90, "10": 80, "11": 60, "12": 30, "13": 30, "14": 90, "15": 30, "16": 30, "17": 50, "18": 50, "19": 50, "20": 60, "21": 90, "22": 90, "23": 50, "24": 60, "25": 80}
 		},
-		"Vysledky_H4H": {
+		"H4H": {
 			"name": "výsledková listina nedělní čtyřhodinovky",
 			"short": "Stage 3 – Sunday 4hrs",
 			"start": "09:00:00",
