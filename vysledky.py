@@ -1,5 +1,6 @@
 import csv
 import itertools
+import json
 import operator
 import subprocess
 import sys
@@ -12,29 +13,10 @@ from xml.etree import ElementTree as ET
 dst = 'out/'
 src = 'data/'
 
-stages = OrderedDict([
-	('Vysledky_N2H', {
-		'name': '7. STB 2021 – výsledková listina páteční noční dvouhodinovky',
-		'short': 'Stage 1 – Friday night 2hrs',
-		'start': '21:00:00',
-		'penalty': 10,
-		'cps': {'1': 90, '2': 90, '3': 60, '4': 60, '5': 70, '6': 40, '7': 40, '8': 30, '9': 50, '10': 40, '11': 70, '12': 30, '13': 90, '14': 90},
-	}),
-	('Vysledky_D5H', {
-		'name': '7. STB 2021 – výsledková listina sobotní pětihodinovky',
-		'short': 'Stage 2 – Saturday 5hrs',
-		'start': '10:30:00',
-		'penalty': 20,
-		'cps': {'1': 90, '2': 90, '3': 80, '4': 40, '5': 50, '6': 60, '7': 70, '8': 70, '9': 90, '10': 80, '11': 60, '12': 30, '13': 30, '14': 90, '15': 30, '16': 30, '17': 50, '18': 50, '19': 50, '20': 60, '21': 90, '22': 90, '23': 50, '24': 60, '25': 80},
-	}),
-	('Vysledky_H4H', {
-		'name': '7. STB 2021 – výsledková listina nedělní čtyřhodinovky',
-		'short': 'Stage 3 – Sunday 4hrs',
-		'start': '09:00:00',
-		'penalty': 20,
-		'cps': {'1': 80, '2': 60, '3': 90, '4': 120, '5': 60, '6': 30, '7': 30, '8': 40, '9': 40, '10': 30, '11': 40, '12': 30, '13': 40, '14': 30, '15': 70},
-	})
-])
+with open('event.json') as event_file:
+	event = json.load(event_file)
+
+stages = OrderedDict(event['stages'])
 
 sheets = {
 	'CSV Import': 'entries',
@@ -86,12 +68,12 @@ def print_stage(stage_name, stage, teams):
 	meta = ET.Element('meta', attrib={'charset': 'utf-8'})
 	head.append(meta)
 	title = ET.Element('title')
-	title.text = stage['name']
+	title.text = event['name'] + ' – ' + stage['name']
 	head.append(title)
 	body = ET.Element('body')
 	html.append(body)
 	h1 = ET.Element('h1')
-	h1.text = stage['name']
+	h1.text = event['name'] + ' – ' + stage['name']
 	body.append(h1)
 	table = ET.Element('table')
 	body.append(table)
