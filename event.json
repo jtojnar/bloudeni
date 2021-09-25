@@ -1,5 +1,6 @@
 {
 	"name": "8. STB 2022",
+	"maxOvertime": 30,
 	"stages": {
 		"N2H": {
 			"name": "výsledková listina páteční noční dvouhodinovky",

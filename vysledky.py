@@ -40,7 +40,7 @@ headers = [
 
 event_teams = {}
 
-def print_stage(stage_name, stage, punches, times):
+def print_stage(stage_name, event, stage, punches, times):
 	html = ET.Element('html')
 	head = ET.Element('head')
 	html.append(head)
@@ -87,7 +87,7 @@ def print_stage(stage_name, stage, punches, times):
 		penalty_min = ceil(max((time - stage_duration) / timedelta(minutes=1), 0))
 		penalty = penalty_min * stage['penalty']
 		punches_points = list(map(lambda cp: int(int(cp) in punches.get(str(team_id), [])) * stage['cps'][cp], stage['cps'].keys()))
-		total_points = sum(punches_points) - penalty
+		total_points = 0 if penalty_min > (stage.get('maxOvertime', event['maxOvertime'])) else max(sum(punches_points) - penalty, 0)
 
 		result_data.append(OrderedDict([
 			('id', team_id),
@@ -308,7 +308,7 @@ def main():
 			open(src + 'times-' + stage_name + '.json') as times_file:
 			punches = json.load(punches_file)
 			times = json.load(times_file)
-			print_stage(stage_name, event['stages'][stage_name], punches, times)
+			print_stage(stage_name, event, event['stages'][stage_name], punches, times)
 	print_total()
 
 	write_style()
