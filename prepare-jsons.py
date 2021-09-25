@@ -1,5 +1,6 @@
 import csv
 import json
+import subprocess
 from collections import OrderedDict
 from datetime import datetime
 from datetime import timedelta
@@ -21,8 +22,24 @@ def correct_time(finish_string, start_string, si):
 def is_sportident_5(si):
 	return 1 <= int(si) <= 499999
 
+src = 'data/'
+
+sheets = {
+	'CSV Import': 'entries',
+	'PRINT E1': 'N2H',
+	'PRINT E2': 'D5H',
+	'PRINT E3': 'H4H',
+}
+
+def csv_from_excel(file, sheets):
+	for sheet, target in sheets.items():
+		file_name = target if target == 'entries' else 'Vysledky_' + target
+		with open(src + file_name + '.csv','wb') as out:
+			subprocess.run(['in2csv', '--no-inference', '--sheet', sheet, file], stdout=out)
+
 def main():
-	src = 'data/'
+
+	csv_from_excel('Vysledky_Bloudeni_2021.xlsx', sheets)
 
 	with open('event.json') as event_file:
 		event = json.load(event_file)
@@ -30,14 +47,22 @@ def main():
 	stages = OrderedDict(event['stages'])
 
 	for stage_name, stage in stages.items():
+		with open(src + 'Vysledky_' + stage_name + '.csv') as stage_file:
+			reader = csv.DictReader(stage_file)
+			with open(src + 'punches-' + stage_name + '.json', 'w') as punches_file:
+				punches = {}
+				for row in reader:
+					punches[row['id']] = list(filter(lambda cp: cp is not None, map(lambda cp: int(cp) if int(row[str(cp)]) != 0 else None, stage['cps'].keys())))
+				json.dump(punches, punches_file)
+
 		readouts_path = src + 'readouts-' + stage_name + '.csv'
 		if Path(readouts_path).exists():
 			with open(readouts_path, errors='ignore') as readouts_file, \
 				open(src + 'times-' + stage_name + '.json', 'w') as times_file:
-				readouts = csv.DictReader(readouts_file, delimiter=';')
+				readouts = csv.DictReader(readouts_file)
 
 				punches = json.dump({
-					row['SIID'].strip(): correct_time(row['Finish time'].strip(), stage['start'], row['SIID'].strip())
+					row['SIID'].strip(): correct_time(row['Finish time'].strip() or "00:00:00", stage['start'], row['SIID'].strip())
 					for row in readouts
 				}, times_file)
 

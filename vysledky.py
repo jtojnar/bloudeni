@@ -2,7 +2,6 @@ import csv
 import itertools
 import json
 import operator
-import subprocess
 import sys
 from collections import OrderedDict
 from datetime import datetime
@@ -19,13 +18,6 @@ with open('event.json') as event_file:
 	event = json.load(event_file)
 
 stages = OrderedDict(event['stages'])
-
-sheets = {
-	'CSV Import': 'entries',
-	'PRINT E1': 'N2H',
-	'PRINT E2': 'D5H',
-	'PRINT E3': 'H4H',
-}
 
 genders = ['X', 'M', 'W']
 ages = ['J', 'O', 'V']
@@ -48,7 +40,7 @@ headers = [
 
 event_teams = {}
 
-def print_stage(stage_name, stage, teams, punches, times):
+def print_stage(stage_name, stage, punches, times):
 	html = ET.Element('html')
 	head = ET.Element('head')
 	html.append(head)
@@ -82,34 +74,36 @@ def print_stage(stage_name, stage, teams, punches, times):
 	table.append(tbody)
 
 	result_data = []
-	for row in teams:
-		if row['id'] == '0':
+	for team_id in punches.keys():
+		if team_id == '0':
 			continue
+
+		team = event_teams[team_id]
 
 		stage_start = parse_time(stage['start'])
 		stage_duration = parse_timedelta(stage['duration'])
-		arrival = parse_time(times.get(row['si'], '00:00:00'), strip_milliseconds=True)
+		arrival = parse_time(times.get(team['si'], '00:00:00'), strip_milliseconds=True)
 		time = arrival - stage_start
 		penalty_min = ceil(max((time - stage_duration) / timedelta(minutes=1), 0))
 		penalty = penalty_min * stage['penalty']
-		punches_points = list(map(lambda cp: int(int(cp) in punches.get(str(row['id']), [])) * stage['cps'][cp], stage['cps'].keys()))
+		punches_points = list(map(lambda cp: int(int(cp) in punches.get(str(team_id), [])) * stage['cps'][cp], stage['cps'].keys()))
 		total_points = sum(punches_points) - penalty
 
 		result_data.append(OrderedDict([
-			('id', row['id']),
-			('team', row['team']),
-			('gender', row['gender']),
-			('age', row['age']),
-			('si', row['si']),
-			('member1', row['member1lst'] + ' ' + row['member1fst']),
-			('member2', row['member2lst'] + ' ' + row['member2fst']),
-			('time', timedelta(seconds=0) if row['si'] not in times else time),
+			('id', team_id),
+			('team', team['team']),
+			('gender', team['gender']),
+			('age', team['age']),
+			('si', team['si']),
+			('member1', team['member1lst'] + ' ' + team['member1fst']),
+			('member2', team['member2lst'] + ' ' + team['member2fst']),
+			('time', timedelta(seconds=0) if team['si'] not in times else time),
 			('penalty_min', penalty_min),
 			('penalty', penalty),
 			('punches_points', sum(punches_points)),
 			('total', total_points),
 			('punches', list(map(str, punches_points))),
-			('ignore', row.get('ignore', False))
+			('ignore', team.get('ignore', False))
 		]))
 
 	result_data = sorted(result_data, key=sort_order_teams)
@@ -239,12 +233,6 @@ class pos:
 
 		return (prank, srank)
 
-def csv_from_excel(file, sheets):
-	for sheet, target in sheets.items():
-		file_name = target if target == 'entries' else 'Vysledky_' + target
-		with open(src + file_name + '.csv','wb') as out:
-			subprocess.run(['in2csv', '--no-inference', '--sheet', sheet, file], stdout=out)
-
 
 def write_style():
 	style = '''
@@ -297,8 +285,6 @@ def sort_order_teams(row):
 	)
 
 def main():
-	csv_from_excel('Vysledky_Bloudeni_2021.xlsx', sheets)
-
 	with open(src + 'entries.csv') as entries_file:
 		reader = csv.DictReader(entries_file)
 		for row in reader:
@@ -307,6 +293,7 @@ def main():
 					'ignore': row.get('ignore', None) == 'ms',
 					'team': row['name'],
 					'id': row['#'],
+					'si': row['sportident'],
 					'stages': {},
 					'gender': row['category'][0],
 					'age': row['category'][1],
@@ -317,14 +304,11 @@ def main():
 				}
 
 	for stage_name, stage in stages.items():
-		with open(src + 'Vysledky_' + stage_name + '.csv') as stage_file, \
-			open(src + 'punches-' + stage_name + '.json') as punches_file, \
+		with open(src + 'punches-' + stage_name + '.json') as punches_file, \
 			open(src + 'times-' + stage_name + '.json') as times_file:
-			teams = csv.DictReader(stage_file)
 			punches = json.load(punches_file)
 			times = json.load(times_file)
-			teams = sorted(teams, key=sort_order_teams)
-			print_stage(stage_name, stage, teams, punches, times)
+			print_stage(stage_name, event['stages'][stage_name], punches, times)
 	print_total()
 
 	write_style()
