@@ -1,0 +1,7 @@
+<IfModule mod_rewrite.c>
+	RewriteEngine on
+
+	RewriteCond %{REQUEST_URI} !^/bloudeni/[^/]*\.json$
+	RewriteCond %{REQUEST_URI} !^/bloudeni/dist/
+	RewriteRule (.*) dist/$1
+</IfModule>

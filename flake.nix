@@ -22,6 +22,7 @@
           nativeBuildInputs = [
             pkgs.csvkit
             pkgs.python3
+            pkgs.nodejs
           ];
         };
       }

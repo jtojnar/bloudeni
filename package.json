@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1"
+  },
+  "devDependencies": {
+    "parcel": "2.0.0-rc.0"
+  },
+  "scripts": {
+    "dev": "parcel watch index.html --public-url ./",
+    "build": "parcel build index.html --public-url ./"
+  }
+}
