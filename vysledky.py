@@ -8,6 +8,8 @@ from collections import OrderedDict
 from datetime import datetime
 from datetime import timedelta
 from functools import reduce
+from math import ceil
+from utils import parse_time, parse_timedelta
 from xml.etree import ElementTree as ET
 
 dst = 'out/'
@@ -46,20 +48,7 @@ headers = [
 
 event_teams = {}
 
-NO_DURATION = timedelta(hours=0)
-
-def parse_time(time_cell):
-	try:
-		t = datetime.strptime(time_cell, '%H:%M:%S')
-		delta = timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
-	except:
-		delta = NO_DURATION
-
-	# delta = timedelta(seconds=float(row['time'])*60*60*24)
-
-	return delta
-
-def print_stage(stage_name, stage, teams, punches):
+def print_stage(stage_name, stage, teams, punches, times):
 	html = ET.Element('html')
 	head = ET.Element('head')
 	html.append(head)
@@ -92,27 +81,65 @@ def print_stage(stage_name, stage, teams, punches):
 	tbody = ET.Element('tbody')
 	table.append(tbody)
 
-	positions = pos()
+	result_data = []
 	for row in teams:
 		if row['id'] == '0':
 			continue
 
-		delta = parse_time(row['time'])
-		if delta == NO_DURATION:
-			row['time'] = '00:00:00'
-
-		tr = ET.Element('tr', attrib={'class': 'gender-' + row['gender']})
-		tbody.append(tr)
+		stage_start = parse_time(stage['start'])
+		stage_duration = parse_timedelta(stage['duration'])
+		arrival = parse_time(times.get(row['si'], '00:00:00'), strip_milliseconds=True)
+		time = arrival - stage_start
+		penalty_min = ceil(max((time - stage_duration) / timedelta(minutes=1), 0))
+		penalty = penalty_min * stage['penalty']
 		punches_points = list(map(lambda cp: int(int(cp) in punches.get(str(row['id']), [])) * stage['cps'][cp], stage['cps'].keys()))
-		vals = list(positions.get(row)) + [row['id'], row['team'], row['gender'] + row['age'], row['si'], row['member1lst'] + ' ' + row['member1fst'], row['member2lst'] + ' ' + row['member2fst'], row['time'], row['penaltymin'], row['penaltypts'], str(sum(punches_points)), row['total']] + list(map(str, punches_points))
-		for val in vals:
+		total_points = sum(punches_points) - penalty
+
+		result_data.append(OrderedDict([
+			('id', row['id']),
+			('team', row['team']),
+			('gender', row['gender']),
+			('age', row['age']),
+			('si', row['si']),
+			('member1', row['member1lst'] + ' ' + row['member1fst']),
+			('member2', row['member2lst'] + ' ' + row['member2fst']),
+			('time', timedelta(seconds=0) if row['si'] not in times else time),
+			('penalty_min', penalty_min),
+			('penalty', penalty),
+			('punches_points', sum(punches_points)),
+			('total', total_points),
+			('punches', list(map(str, punches_points))),
+			('ignore', row.get('ignore', False))
+		]))
+
+	result_data = sorted(result_data, key=sort_order_teams)
+
+	positions = pos()
+	for result_row in result_data:
+		tr = ET.Element('tr', attrib={'class': 'gender-' + result_row['gender']})
+		tbody.append(tr)
+		vals = list(positions.get(result_row)) + [
+			result_row['id'],
+			result_row['team'],
+			result_row['gender'] + result_row['age'],
+			result_row['si'],
+			result_row['member1'],
+			result_row['member2'],
+			'00:00:00' if result_row['time'] == timedelta(seconds=0) else result_row['time'],
+			result_row['penalty_min'],
+			result_row['penalty'],
+			result_row['punches_points'],
+			result_row['total'],
+		] + result_row['punches']
+
+		for val in list(map(str, vals)):
 			td = ET.Element('td')
 			tr.append(td)
 			td.text = val
 
-		event_teams[row['id']]['stages'][stage_name] = {
-			'time': delta,
-			'total': int(row['total']),
+		event_teams[result_row['id']]['stages'][stage_name] = {
+			'time': result_row['time'],
+			'total': result_row['total'],
 		}
 
 	ET.ElementTree(html).write(dst + 'Vysledky_' + stage_name + '.html', encoding='utf8', method='html')
@@ -214,7 +241,8 @@ class pos:
 
 def csv_from_excel(file, sheets):
 	for sheet, target in sheets.items():
-		with open(src + 'Vysledky_' + target + '.csv','wb') as out:
+		file_name = target if target == 'entries' else 'Vysledky_' + target
+		with open(src + file_name + '.csv','wb') as out:
 			subprocess.run(['in2csv', '--no-inference', '--sheet', sheet, file], stdout=out)
 
 
@@ -250,13 +278,6 @@ def write_style():
 	with open(dst + 'style.css', 'w') as style_file:
 		style_file.write(style)
 
-
-def clean_overtimes(row):
-	if parse_time(row['time']) == NO_DURATION:
-		row['pts'] = '0'
-		row['total'] = '0'
-	return row
-
 def sort_order_teams(row):
 	'''Generate a value, whose comparisons will determine the order of teams in stage results.'''
 
@@ -268,7 +289,7 @@ def sort_order_teams(row):
 		# When there is a tie, shortest time goes first.
 		# People not running would have time=0 but we are already putting to the bottom
 		# because they also have total=0.
-		parse_time(row['time']),
+		row['time'],
 		# People running out of competition will be listed in the place
 		# they would be if they competed but below of those who competed in case of a tie.
 		# They will just not be assigned ranking by `pos` class.
@@ -297,12 +318,13 @@ def main():
 
 	for stage_name, stage in stages.items():
 		with open(src + 'Vysledky_' + stage_name + '.csv') as stage_file, \
-			open(src + 'punches-' + stage_name + '.json') as punches_file:
+			open(src + 'punches-' + stage_name + '.json') as punches_file, \
+			open(src + 'times-' + stage_name + '.json') as times_file:
 			teams = csv.DictReader(stage_file)
 			punches = json.load(punches_file)
-			teams = map(clean_overtimes, teams)
+			times = json.load(times_file)
 			teams = sorted(teams, key=sort_order_teams)
-			print_stage(stage_name, stage, teams, punches)
+			print_stage(stage_name, stage, teams, punches, times)
 	print_total()
 
 	write_style()
