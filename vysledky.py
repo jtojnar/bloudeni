@@ -282,7 +282,7 @@ def main():
 		for row in reader:
 			if row['category']:
 				event_teams[row['#']] = {
-					'ignore': row['ignore'] == 'ms',
+					'ignore': row.get('ignore', None) == 'ms',
 					'team': row['name'],
 					'id': row['#'],
 					'stages': {},
