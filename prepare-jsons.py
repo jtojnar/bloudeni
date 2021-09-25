@@ -13,8 +13,9 @@ def correct_time(finish_string, start_string, si):
 	'''
 	finish = parse_time(finish_string, strip_milliseconds=True)
 	start = parse_time(start_string)
+	noon = parse_time('12:00:00')
 
-	if start.hour >= 12 and start > finish and is_sportident_5(si):
+	if is_sportident_5(si) and finish < noon and not (start <= finish < noon):
 		finish += timedelta(hours=12)
 
 	return format_time(finish)
