@@ -58,9 +58,9 @@ def main():
 
 		readouts_path = src + 'readouts-' + stage_name + '.csv'
 		if Path(readouts_path).exists():
-			with open(readouts_path, errors='ignore') as readouts_file, \
+			with open(readouts_path, errors='ignore', encoding='utf-8') as readouts_file, \
 				open(src + 'times-' + stage_name + '.json', 'w') as times_file:
-				readouts = csv.DictReader(readouts_file)
+				readouts = csv.DictReader(readouts_file, delimiter=';')
 
 				punches = json.dump({
 					row['SIID'].strip(): correct_time(row['Finish time'].strip() or "00:00:00", stage['start'], row['SIID'].strip())
