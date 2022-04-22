@@ -40,7 +40,7 @@ def csv_from_excel(file, sheets):
 
 def main():
 
-	csv_from_excel('Vysledky_Bloudeni_2021.xlsx', sheets)
+	csv_from_excel('Vysledky_Bloudeni_2022.xlsx', sheets)
 
 	with open('event.json') as event_file:
 		event = json.load(event_file)
