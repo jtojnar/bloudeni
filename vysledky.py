@@ -106,7 +106,11 @@ def print_stage(stage_name, event, stage, punches, times):
         stage_start = parse_time(stage["start"])
         stage_duration = parse_timedelta(stage["duration"])
         arrival = parse_time(times.get(team["si"], "00:00:00"), strip_milliseconds=True)
+        has_time = team["si"] in times
         time = arrival - stage_start
+        time_pre = time
+        if has_time and time < timedelta(seconds=0):
+            time = time + timedelta(hours=24)
         penalty_min = ceil(max((time - stage_duration) / timedelta(minutes=1), 0))
         penalty = penalty_min * stage["penalty"]
         punches_points = list(
@@ -143,7 +147,7 @@ def print_stage(stage_name, event, stage, punches, times):
                             ],
                         ),
                     ),
-                    ("time", timedelta(seconds=0) if team["si"] not in times else time),
+                    ("time", time if has_time else timedelta(seconds=0)),
                     ("penalty_min", penalty_min),
                     ("penalty", penalty),
                     ("punches_points", sum(punches_points)),
