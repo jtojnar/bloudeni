@@ -158,6 +158,7 @@ def print_stage(stage_name, event, stage, punches, times):
             )
         )
 
+    result_data = filter(lambda row: not event_teams[row["id"]]["skip"], result_data)
     result_data = sorted(result_data, key=sort_order_teams)
 
     positions = pos()
@@ -272,6 +273,8 @@ def print_total():
             row["stages"]["total"]["time"],
         ),
     )
+
+    teams = filter(lambda row: not event_teams[row["id"]]["skip"], teams)
 
     for row in teams:
         tr = ET.Element("tr", attrib={"class": "gender-" + row["gender"]})
@@ -391,6 +394,7 @@ def main():
             if row["category"]:
                 event_teams[row["#"]] = {
                     "ignore": row.get("ignore", None) == "ms",
+                    "skip": row.get("ignore", None) == "del",
                     "team": row["name"],
                     "id": row["#"],
                     "si": row["sportident"],
