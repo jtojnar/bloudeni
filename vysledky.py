@@ -300,8 +300,8 @@ def print_total():
             + flatten(
                 [
                     [
-                        row["stages"][stage]["total"],
-                        row["stages"][stage]["time"],
+                        row["stages"].get(stage, {"total": ""})["total"],
+                        row["stages"].get(stage, {"time": ""})["time"],
                     ]
                     for stage in list(stages.keys()) + ["total"]
                 ]
