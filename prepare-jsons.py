@@ -26,7 +26,7 @@ def is_sportident_5(si):
     return 1 <= int(si) <= 499999
 
 
-src = "data/"
+src = Path("data")
 
 sheets = {
     "CSV Import": "entries",
@@ -39,7 +39,7 @@ sheets = {
 def csv_from_excel(file, sheets):
     for sheet, target in sheets.items():
         file_name = target if target == "entries" else "Vysledky_" + target
-        with open(src + file_name + ".csv", "wb") as out:
+        with open(src / f"{file_name}.csv", "wb") as out:
             subprocess.run(
                 ["in2csv", "--no-inference", "--sheet", sheet, file],
                 stdout=out,
@@ -56,9 +56,9 @@ def main():
     stages = OrderedDict(event["stages"])
 
     for stage_name, stage in stages.items():
-        with open(src + "Vysledky_" + stage_name + ".csv") as stage_file:
+        with open(src / f"Vysledky_{stage_name}.csv") as stage_file:
             reader = csv.DictReader(stage_file)
-            with open(src + "punches-" + stage_name + ".json", "w") as punches_file:
+            with open(src / f"punches-{stage_name}.json", "w") as punches_file:
                 punches = {}
                 for row in reader:
                     punches[row["id"]] = list(
@@ -72,10 +72,10 @@ def main():
                     )
                 json.dump(punches, punches_file)
 
-        readouts_path = src + "readouts-" + stage_name + ".csv"
+        readouts_path = src / f"readouts-{stage_name}.csv"
         if Path(readouts_path).exists():
             readouts_cm = open(readouts_path, errors="ignore", encoding="utf-8")
-            times_cm = open(src + "times-" + stage_name + ".json", "w")
+            times_cm = open(src / f"times-{stage_name}.json", "w")
             with readouts_cm as readouts_file, times_cm as times_file:
                 readouts = csv.DictReader(readouts_file, delimiter=";")
 

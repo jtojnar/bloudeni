@@ -8,6 +8,7 @@ from datetime import datetime
 from datetime import timedelta
 from functools import reduce
 from math import ceil
+from pathlib import Path
 from utils import parse_time, parse_timedelta
 from xml.etree import ElementTree as ET
 
@@ -34,8 +35,8 @@ def add_cells(tr: ET.Element, vals: list):
             td.text = str(val)
 
 
-dst = "out/"
-src = "data/"
+dst = Path("out")
+src = Path("data")
 
 with open("event.json") as event_file:
     event = json.load(event_file)
@@ -194,7 +195,7 @@ def print_stage(stage_name, event, stage, punches, times):
         }
 
     ET.ElementTree(html).write(
-        dst + "Vysledky_" + stage_name + ".html", encoding="utf8", method="html"
+        dst / f"Vysledky_{stage_name}.html", encoding="utf8", method="html"
     )
 
 
@@ -309,7 +310,7 @@ def print_total():
         )
         add_cells(tr, vals)
 
-    ET.ElementTree(html).write(dst + "total.html", encoding="utf8", method="html")
+    ET.ElementTree(html).write(dst / "total.html", encoding="utf8", method="html")
 
 
 class pos:
@@ -368,7 +369,7 @@ def write_style():
     }
     """
 
-    with open(dst + "style.css", "w") as style_file:
+    with open(dst / "style.css", "w") as style_file:
         style_file.write(style)
 
 
@@ -392,7 +393,7 @@ def sort_order_teams(row):
 
 
 def main():
-    with open(src + "entries.csv") as entries_file:
+    with open(src / "entries.csv") as entries_file:
         reader = csv.DictReader(entries_file)
         for row in reader:
             if row["category"]:
@@ -412,8 +413,8 @@ def main():
                 }
 
     for stage_name, stage in stages.items():
-        punches_cm = open(src + "punches-" + stage_name + ".json")
-        times_cm = open(src + "times-" + stage_name + ".json")
+        punches_cm = open(src / f"punches-{stage_name}.json")
+        times_cm = open(src / f"times-{stage_name}.json")
         with punches_cm as punches_file, times_cm as times_file:
             punches = json.load(punches_file)
             times = json.load(times_file)
