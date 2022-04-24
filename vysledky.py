@@ -11,6 +11,29 @@ from math import ceil
 from utils import parse_time, parse_timedelta
 from xml.etree import ElementTree as ET
 
+
+def optionals(condition: bool, value: list) -> list:
+    if condition:
+        return value
+    else:
+        return []
+
+
+def add_cells(tr: ET.Element, vals: list):
+    for val in list(vals):
+        td = ET.Element("td")
+        tr.append(td)
+        if isinstance(val, list):
+            head, tail = val[0], val[1:]
+            td.text = head
+            for item in tail:
+                br = ET.Element("br")
+                br.tail = item
+                td.append(br)
+        else:
+            td.text = str(val)
+
+
 dst = "out/"
 src = "data/"
 
@@ -29,8 +52,7 @@ headers = [
     "Team",
     "Category",
     "SI Card",
-    "Member1",
-    "Member2",
+    "Members",
     "Time",
     "Penalty minutes",
     "Penalty points",
@@ -109,8 +131,18 @@ def print_stage(stage_name, event, stage, punches, times):
                     ("gender", team["gender"]),
                     ("age", team["age"]),
                     ("si", team["si"]),
-                    ("member1", team["member1lst"] + " " + team["member1fst"]),
-                    ("member2", team["member2lst"] + " " + team["member2fst"]),
+                    (
+                        "members",
+                        [
+                            team["member1lst"] + " " + team["member1fst"],
+                        ]
+                        + optionals(
+                            "member2lst" in team,
+                            [
+                                team["member2lst"] + " " + team["member2fst"],
+                            ],
+                        ),
+                    ),
                     ("time", timedelta(seconds=0) if team["si"] not in times else time),
                     ("penalty_min", penalty_min),
                     ("penalty", penalty),
@@ -135,8 +167,7 @@ def print_stage(stage_name, event, stage, punches, times):
                 result_row["team"],
                 result_row["gender"] + result_row["age"],
                 result_row["si"],
-                result_row["member1"],
-                result_row["member2"],
+                result_row["members"],
                 (
                     "00:00:00"
                     if result_row["time"] == timedelta(seconds=0)
@@ -150,10 +181,7 @@ def print_stage(stage_name, event, stage, punches, times):
             + result_row["punches"]
         )
 
-        for val in list(map(str, vals)):
-            td = ET.Element("td")
-            tr.append(td)
-            td.text = val
+        add_cells(tr, vals)
 
         event_teams[result_row["id"]]["stages"][stage_name] = {
             "time": result_row["time"],
@@ -171,8 +199,7 @@ headers_tot = [
     "ID",
     "Team",
     "Category",
-    "Member1",
-    "Member2",
+    "Members",
 ]
 
 flatten = lambda l: reduce(operator.iconcat, l, [])
@@ -251,8 +278,17 @@ def print_total():
                 row["id"],
                 row["team"],
                 row["gender"] + row["age"],
-                row["member1lst"] + " " + row["member1fst"],
-                row["member2lst"] + " " + row["member2fst"],
+                (
+                    [
+                        row["member1lst"] + " " + row["member1fst"],
+                    ]
+                    + optionals(
+                        "member2lst" in row,
+                        [
+                            row["member2lst"] + " " + row["member2fst"],
+                        ],
+                    )
+                ),
             ]
             + flatten(
                 [
@@ -264,10 +300,7 @@ def print_total():
                 ]
             )
         )
-        for val in vals:
-            td = ET.Element("td")
-            tr.append(td)
-            td.text = str(val)
+        add_cells(tr, vals)
 
     ET.ElementTree(html).write(dst + "total.html", encoding="utf8", method="html")
 
