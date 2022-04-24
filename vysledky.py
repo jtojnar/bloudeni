@@ -353,7 +353,11 @@ def write_style():
     }
 
     tbody tr:nth-child(odd) {
-        background: #eee;
+        background: #ddd;
+    }
+
+    tbody tr:hover {
+        background: #ffc100;
     }
 
     tr.gender-m + tr.gender-w, tr.gender-w + tr.gender-x {
