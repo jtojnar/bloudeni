@@ -194,7 +194,9 @@ def print_stage(stage_name, event, stage, punches, times):
             "total": result_row["total"],
         }
 
-    ET.ElementTree(html).write(
+    tree = ET.ElementTree(html)
+    ET.indent(tree)
+    tree.write(
         dst / f"Vysledky_{stage_name}.html", encoding="utf8", method="html"
     )
 
@@ -310,7 +312,9 @@ def print_total():
         )
         add_cells(tr, vals)
 
-    ET.ElementTree(html).write(dst / "total.html", encoding="utf8", method="html")
+    tree = ET.ElementTree(html)
+    ET.indent(tree)
+    tree.write(dst / "total.html", encoding="utf8", method="html")
 
 
 class pos:
