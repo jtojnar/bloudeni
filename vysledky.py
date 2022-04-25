@@ -279,7 +279,7 @@ def print_total():
 
     for row in teams:
         tr = ET.Element("tr", attrib={"class": "gender-" + row["gender"]})
-        table.append(tr)
+        tbody.append(tr)
         vals = (
             list(positions.get(row))
             + [
