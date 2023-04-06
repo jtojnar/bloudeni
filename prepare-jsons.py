@@ -27,6 +27,7 @@ def is_sportident_5(si):
 
 
 src = Path("data")
+src.mkdir(exist_ok=True)
 
 sheets = {
     "CSV Import": "entries",
