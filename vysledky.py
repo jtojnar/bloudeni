@@ -9,15 +9,8 @@ from datetime import timedelta
 from functools import reduce
 from math import ceil
 from pathlib import Path
-from utils import parse_time, parse_timedelta
+from utils import optionals, parse_time, parse_timedelta
 from xml.etree import ElementTree as ET
-
-
-def optionals(condition: bool, value: list) -> list:
-    if condition:
-        return value
-    else:
-        return []
 
 
 def add_cells(tr: ET.Element, vals: list):

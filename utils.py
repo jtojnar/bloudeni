@@ -6,6 +6,13 @@ TIME_FORMAT = "%H:%M:%S"
 NO_DURATION = timedelta(hours=0)
 
 
+def optionals(condition: bool, value: list) -> list:
+    if condition:
+        return value
+    else:
+        return []
+
+
 def parse_timedelta(time_string):
     try:
         time = parse_time(time_string)
