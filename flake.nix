@@ -20,6 +20,9 @@
       in {
         devShell = pkgs.mkShell {
           nativeBuildInputs = [
+            pkgs.black
+            pkgs.mypy
+
             pkgs.csvkit
             pkgs.python3
             pkgs.nodejs
