@@ -222,12 +222,12 @@ def print_total():
     meta = ET.Element("meta", attrib={"charset": "utf-8"})
     head.append(meta)
     title = ET.Element("title")
-    title.text = "Výsledky STB 2022"
+    title.text = "Výsledky STB 2023"
     head.append(title)
     body = ET.Element("body")
     html.append(body)
     h1 = ET.Element("h1")
-    h1.text = "Výsledky STB 2022"
+    h1.text = "Výsledky STB 2023"
     body.append(h1)
     table = ET.Element("table", attrib={"class": "foo"})
     body.append(table)
