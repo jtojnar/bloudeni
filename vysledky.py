@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from datetime import timedelta
 from functools import reduce
+from itertools import chain
 from math import ceil
 from pathlib import Path
 from typing import Union
@@ -212,8 +213,6 @@ headers_tot = [
     "Members",
 ]
 
-flatten = lambda l: reduce(operator.iconcat, l, [])
-
 
 def print_total():
     html = ET.Element("html")
@@ -299,7 +298,7 @@ def print_total():
                     ],
                 ),
             ],
-            *flatten(
+            *itertools.chain.from_iterable(
                 [
                     [
                         row["stages"].get(stage, {"total": ""})["total"],
