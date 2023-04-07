@@ -8,7 +8,7 @@ from pathlib import Path
 from utils import format_time, parse_time
 
 
-def correct_time(finish_string, start_string, si):
+def correct_time(finish_string: str, start_string: str, si: str) -> str:
     """
     Adjusts time of SI 5 card, which only supports 12-hour format.
     """
@@ -22,7 +22,7 @@ def correct_time(finish_string, start_string, si):
     return format_time(finish)
 
 
-def is_sportident_5(si):
+def is_sportident_5(si: str) -> bool:
     return 1 <= int(si) <= 499999
 
 
@@ -37,7 +37,7 @@ sheets = {
 }
 
 
-def csv_from_excel(file, sheets):
+def csv_from_excel(file: Path, sheets: dict[str, str]) -> None:
     for sheet, target in sheets.items():
         file_name = target if target == "entries" else "Vysledky_" + target
         with open(src / f"{file_name}.csv", "wb") as out:
@@ -47,9 +47,8 @@ def csv_from_excel(file, sheets):
             )
 
 
-def main():
-
-    csv_from_excel("Vysledky_Bloudeni_2023.xlsx", sheets)
+def main() -> None:
+    csv_from_excel(Path("Vysledky_Bloudeni_2023.xlsx"), sheets)
 
     with open("event.json") as event_file:
         event = json.load(event_file)
@@ -80,7 +79,7 @@ def main():
             with readouts_cm as readouts_file, times_cm as times_file:
                 readouts = csv.DictReader(readouts_file, delimiter=";")
 
-                punches = json.dump(
+                json.dump(
                     {
                         row["SIID"].strip(): correct_time(
                             row["Finish time"].strip() or "00:00:00",

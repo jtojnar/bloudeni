@@ -11,9 +11,54 @@ from functools import reduce
 from itertools import chain
 from math import ceil
 from pathlib import Path
-from typing import Union
-from utils import optionals, parse_time, parse_timedelta
+from typing import Optional, TypedDict, Union
+from utils import format_time, optionals, parse_time, parse_timedelta
 from xml.etree import ElementTree as ET
+
+TeamId = str
+SportIdent = str
+
+
+class TeamStageResult(TypedDict):
+    time: timedelta
+    total: int
+
+
+class Team(TypedDict):
+    ignore: bool
+    skip: bool
+    team: str
+    id: TeamId
+    si: SportIdent
+    stages: dict[str, TeamStageResult]
+    gender: str
+    age: str
+    member1lst: str
+    member1fst: str
+    member2lst: str
+    member2fst: str
+
+
+class Stage(TypedDict):
+    name: str
+    short: str
+    start: str
+    duration: str
+    penalty: int
+    cps: dict[str, int]
+    maxOvertime: int  # NotRequired[int]
+
+
+class Event(TypedDict):
+    name: str
+    maxOvertime: int
+    stages: OrderedDict[str, Stage]
+
+
+Punches = dict[TeamId, list[int]]
+
+
+ArrivalTimes = dict[SportIdent, str]
 
 
 @dataclass
@@ -33,8 +78,11 @@ class ResultTeam:
     ignore: bool
 
 
-def add_cells(tr: ET.Element, vals: list):
-    for val in list(vals):
+def add_cells(
+    tr: ET.Element,
+    vals: list[Union[list[str], str, int, timedelta]],
+) -> None:
+    for val in vals:
         td = ET.Element("td")
         tr.append(td)
         if isinstance(val, list):
@@ -73,10 +121,16 @@ headers = [
     "Total points",
 ]
 
-event_teams = {}
+event_teams: dict[TeamId, Team] = {}
 
 
-def print_stage(stage_name, event, stage, punches, times):
+def print_stage(
+    stage_name: str,
+    event: Event,
+    stage: Stage,
+    punches: Punches,
+    times: ArrivalTimes,
+) -> None:
     html = ET.Element("html")
     head = ET.Element("head")
     html.append(head)
@@ -173,7 +227,7 @@ def print_stage(stage_name, event, stage, punches, times):
     for result_team in result_data:
         tr = ET.Element("tr", attrib={"class": "gender-" + result_team.gender})
         tbody.append(tr)
-        vals = [
+        vals: list[Union[list[str], str, int, timedelta]] = [
             *positions.get(result_team),
             result_team.id,
             result_team.team,
@@ -214,7 +268,7 @@ headers_tot = [
 ]
 
 
-def print_total():
+def print_total() -> None:
     html = ET.Element("html")
     head = ET.Element("head")
     html.append(head)
@@ -279,12 +333,12 @@ def print_total():
         ),
     )
 
-    teams = filter(lambda row: not event_teams[row["id"]]["skip"], teams)
+    teams = [row for row in teams if not event_teams[row["id"]]["skip"]]
 
     for row in teams:
         tr = ET.Element("tr", attrib={"class": "gender-" + row["gender"]})
         tbody.append(tr)
-        vals = [
+        vals: list[Union[list[str], str, int, timedelta]] = [
             *positions.get(row),
             row["id"],
             row["team"],
@@ -316,12 +370,12 @@ def print_total():
 
 
 class pos:
-    def __init__(self):
+    def __init__(self) -> None:
         self.positions = {
             (gender + age): 0 for (gender, age) in itertools.product(genders, ages)
         }
 
-    def get(self, team: Union[ResultTeam, dict]) -> tuple[int, int]:
+    def get(self, team: Union[ResultTeam, Team]) -> tuple[str, str]:
         prank = ""
         srank = ""
         if type(team) == ResultTeam:
@@ -342,7 +396,7 @@ class pos:
         return (prank, srank)
 
 
-def write_style():
+def write_style() -> None:
     style = """
     table {
         border-collapse: collapse;
@@ -398,7 +452,7 @@ def sort_order_teams(result_team: ResultTeam) -> tuple[str, int, timedelta, int]
     )
 
 
-def main():
+def main() -> None:
     with open(src / "entries.csv") as entries_file:
         reader = csv.DictReader(entries_file)
         for row in reader:
