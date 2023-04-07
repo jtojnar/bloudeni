@@ -33,8 +33,7 @@ src = Path("data")
 
 with open("event.json") as event_file:
     event = json.load(event_file)
-
-stages = OrderedDict(event["stages"])
+    event["stages"] = OrderedDict(event["stages"])
 
 genders = ["X", "M", "W"]
 ages = ["J", "O", "V"]
@@ -232,14 +231,15 @@ def print_total():
         tr.append(th)
         th.text = header
 
-    for header in [stages[stage]["short"] for stage in stages] + ["Total"]:
+    short_stages = [event["stages"][stage]["short"] for stage in event["stages"]]
+    for header in short_stages + ["Total"]:
         th = ET.Element("th", attrib={"colspan": "2"})
         tr.append(th)
         th.text = header
 
     tr2 = ET.Element("tr")
     thead.append(tr2)
-    for header in ["Points", "Time"] * (len(stages) + 1):
+    for header in ["Points", "Time"] * (len(event["stages"]) + 1):
         th = ET.Element("th")
         tr2.append(th)
         th.text = header
@@ -297,7 +297,7 @@ def print_total():
                         row["stages"].get(stage, {"total": ""})["total"],
                         row["stages"].get(stage, {"time": ""})["time"],
                     ]
-                    for stage in list(stages.keys()) + ["total"]
+                    for stage in list(event["stages"].keys()) + ["total"]
                 ]
             )
         )
@@ -407,7 +407,7 @@ def main():
                     "member2fst": row["m2firstname"],
                 }
 
-    for stage_name, stage in stages.items():
+    for stage_name, stage in event["stages"].items():
         punches_cm = open(src / f"punches-{stage_name}.json")
         times_cm = open(src / f"times-{stage_name}.json")
         with punches_cm as punches_file, times_cm as times_file:
