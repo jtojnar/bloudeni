@@ -17,7 +17,7 @@ export default function App() {
 		);
 	}
 	if (selectedStage === null) {
-		return Object.entries(eventInfo.stages).map(([id, stage]) => <button onClick={() => setSelectedStage(id)}>{stage.short}</button>);
+		return Object.entries(eventInfo.stages).map(([id, stage]) => <button key={id} onClick={() => setSelectedStage(id)}>{stage.short}</button>);
 	}
 
 	if (teams === null) {
