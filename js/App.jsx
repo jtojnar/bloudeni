@@ -1,15 +1,34 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
 
+function useJsonData(url) {
+	const [data, setData] = useState(null);
+
+	useEffect(() => {
+		if (url) {
+			let ignore = false;
+
+			fetch(url)
+				.then(response => response.json())
+				.then(json => {
+					if (!ignore) {
+						setData(json);
+					}
+				});
+
+			return () => {
+				ignore = true;
+			};
+		}
+	}, [url]);
+
+	return data;
+}
+
 export default function App() {
 	const [selectedStage, setSelectedStage] = useState(null);
-	const [eventInfo, setEventInfo] = useState(null);
-	const [teams, setTeams] = useState(null);
-
-	useEffect(async () => {
-		setEventInfo(await (await fetch('/bloudeni/event.json')).json());
-		setTeams(await (await fetch('/bloudeni/teams.json')).json());
-	}, []);
+	const eventInfo = useJsonData('/bloudeni/event.json');
+	const teams = useJsonData('/bloudeni/teams.json')
 
 	if (eventInfo === null) {
 		return (
