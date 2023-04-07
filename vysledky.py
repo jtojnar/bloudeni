@@ -37,6 +37,9 @@ class Team(TypedDict):
     member1fst: str
     member2lst: str
     member2fst: str
+    friday2h: bool
+    saturday5h: bool
+    sunday4h: bool
 
 
 class Stage(TypedDict):
@@ -69,6 +72,7 @@ class ResultTeam:
     age: str
     si: SportIdent
     members: list[str]
+    stages: set[str]
     time: timedelta
     penalty_min: int
     penalty: int
@@ -194,6 +198,14 @@ def print_stage(
             else max(sum(punches_points) - penalty, 0)
         )
 
+        stages = set(
+            [
+                *optionals(team["friday2h"], ["N2H"]),
+                *optionals(team["saturday5h"], ["D5H"]),
+                *optionals(team["sunday4h"], ["H4H"]),
+            ]
+        )
+
         result_data.append(
             ResultTeam(
                 id=team_id,
@@ -210,7 +222,10 @@ def print_stage(
                         ],
                     ),
                 ],
-                time=time if has_time else timedelta(seconds=0),
+                stages=stages,
+                time=(
+                    time if has_time and stage_name in stages else timedelta(seconds=0)
+                ),
                 penalty_min=penalty_min,
                 penalty=penalty,
                 punches_points=sum(punches_points),
@@ -470,6 +485,9 @@ def main() -> None:
                     "member1fst": row["m1firstname"],
                     "member2lst": row["m2lastname"],
                     "member2fst": row["m2firstname"],
+                    "friday2h": row["friday2h"] == "yes",
+                    "saturday5h": row["saturday5h"] == "yes",
+                    "sunday4h": row["sunday4h"] == "yes",
                 }
 
     for stage_name, stage in event["stages"].items():
