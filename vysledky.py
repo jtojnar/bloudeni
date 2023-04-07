@@ -132,13 +132,13 @@ def print_stage(stage_name, event, stage, punches, times):
                         "members",
                         [
                             team["member1lst"] + " " + team["member1fst"],
-                        ]
-                        + optionals(
-                            "member2lst" in team,
-                            [
-                                team["member2lst"] + " " + team["member2fst"],
-                            ],
-                        ),
+                            *optionals(
+                                "member2lst" in team,
+                                [
+                                    team["member2lst"] + " " + team["member2fst"],
+                                ],
+                            ),
+                        ],
                     ),
                     ("time", time if has_time else timedelta(seconds=0)),
                     ("penalty_min", penalty_min),
@@ -158,26 +158,24 @@ def print_stage(stage_name, event, stage, punches, times):
     for result_row in result_data:
         tr = ET.Element("tr", attrib={"class": "gender-" + result_row["gender"]})
         tbody.append(tr)
-        vals = (
-            list(positions.get(result_row))
-            + [
-                result_row["id"],
-                result_row["team"],
-                result_row["gender"] + result_row["age"],
-                result_row["si"],
-                result_row["members"],
-                (
-                    "00:00:00"
-                    if result_row["time"] == timedelta(seconds=0)
-                    else result_row["time"]
-                ),
-                result_row["penalty_min"],
-                result_row["penalty"],
-                result_row["punches_points"],
-                result_row["total"],
-            ]
-            + result_row["punches"]
-        )
+        vals = [
+            *positions.get(result_row),
+            result_row["id"],
+            result_row["team"],
+            result_row["gender"] + result_row["age"],
+            result_row["si"],
+            result_row["members"],
+            (
+                "00:00:00"
+                if result_row["time"] == timedelta(seconds=0)
+                else result_row["time"]
+            ),
+            result_row["penalty_min"],
+            result_row["penalty"],
+            result_row["punches_points"],
+            result_row["total"],
+            *result_row["punches"],
+        ]
 
         add_cells(tr, vals)
 
@@ -273,25 +271,21 @@ def print_total():
     for row in teams:
         tr = ET.Element("tr", attrib={"class": "gender-" + row["gender"]})
         tbody.append(tr)
-        vals = (
-            list(positions.get(row))
-            + [
-                row["id"],
-                row["team"],
-                row["gender"] + row["age"],
-                (
+        vals = [
+            *positions.get(row),
+            row["id"],
+            row["team"],
+            row["gender"] + row["age"],
+            [
+                row["member1lst"] + " " + row["member1fst"],
+                *optionals(
+                    "member2lst" in row,
                     [
-                        row["member1lst"] + " " + row["member1fst"],
-                    ]
-                    + optionals(
-                        "member2lst" in row,
-                        [
-                            row["member2lst"] + " " + row["member2fst"],
-                        ],
-                    )
+                        row["member2lst"] + " " + row["member2fst"],
+                    ],
                 ),
-            ]
-            + flatten(
+            ],
+            *flatten(
                 [
                     [
                         row["stages"].get(stage, {"total": ""})["total"],
@@ -299,8 +293,8 @@ def print_total():
                     ]
                     for stage in list(event["stages"].keys()) + ["total"]
                 ]
-            )
-        )
+            ),
+        ]
         add_cells(tr, vals)
 
     tree = ET.ElementTree(html)
