@@ -4,13 +4,32 @@ import json
 import operator
 import sys
 from collections import OrderedDict
+from dataclasses import dataclass
 from datetime import datetime
 from datetime import timedelta
 from functools import reduce
 from math import ceil
 from pathlib import Path
+from typing import Union
 from utils import optionals, parse_time, parse_timedelta
 from xml.etree import ElementTree as ET
+
+
+@dataclass
+class ResultTeam:
+    id: str
+    team: str
+    gender: str
+    age: str
+    si: SportIdent
+    members: list[str]
+    time: timedelta
+    penalty_min: int
+    penalty: int
+    punches_points: int
+    total: int
+    punches: list[str]
+    ignore: bool
 
 
 def add_cells(tr: ET.Element, vals: list):
@@ -89,7 +108,7 @@ def print_stage(stage_name, event, stage, punches, times):
     tbody = ET.Element("tbody")
     table.append(tbody)
 
-    result_data = []
+    result_data: list[ResultTeam] = []
     for team_id in punches.keys():
         if team_id == "0":
             continue
@@ -121,67 +140,62 @@ def print_stage(stage_name, event, stage, punches, times):
         )
 
         result_data.append(
-            OrderedDict(
-                [
-                    ("id", team_id),
-                    ("team", team["team"]),
-                    ("gender", team["gender"]),
-                    ("age", team["age"]),
-                    ("si", team["si"]),
-                    (
-                        "members",
+            ResultTeam(
+                id=team_id,
+                team=team["team"],
+                gender=team["gender"],
+                age=team["age"],
+                si=team["si"],
+                members=[
+                    team["member1lst"] + " " + team["member1fst"],
+                    *optionals(
+                        "member2lst" in team,
                         [
-                            team["member1lst"] + " " + team["member1fst"],
-                            *optionals(
-                                "member2lst" in team,
-                                [
-                                    team["member2lst"] + " " + team["member2fst"],
-                                ],
-                            ),
+                            team["member2lst"] + " " + team["member2fst"],
                         ],
                     ),
-                    ("time", time if has_time else timedelta(seconds=0)),
-                    ("penalty_min", penalty_min),
-                    ("penalty", penalty),
-                    ("punches_points", sum(punches_points)),
-                    ("total", total_points),
-                    ("punches", list(map(str, punches_points))),
-                    ("ignore", team.get("ignore", False)),
-                ]
+                ],
+                time=time if has_time else timedelta(seconds=0),
+                penalty_min=penalty_min,
+                penalty=penalty,
+                punches_points=sum(punches_points),
+                total=total_points,
+                punches=list(map(str, punches_points)),
+                ignore=team.get("ignore", False),
             )
         )
 
-    result_data = filter(lambda row: not event_teams[row["id"]]["skip"], result_data)
+    result_data = [team for team in result_data if not event_teams[team.id]["skip"]]
     result_data = sorted(result_data, key=sort_order_teams)
 
     positions = pos()
-    for result_row in result_data:
-        tr = ET.Element("tr", attrib={"class": "gender-" + result_row["gender"]})
+    for result_team in result_data:
+        tr = ET.Element("tr", attrib={"class": "gender-" + result_team.gender})
         tbody.append(tr)
         vals = [
-            *positions.get(result_row),
-            result_row["id"],
-            result_row["team"],
-            result_row["gender"] + result_row["age"],
-            result_row["si"],
-            result_row["members"],
+            *positions.get(result_team),
+            result_team.id,
+            result_team.team,
+            result_team.gender + result_team.age,
+            result_team.si,
+            result_team.members,
             (
                 "00:00:00"
-                if result_row["time"] == timedelta(seconds=0)
-                else result_row["time"]
+                if result_team.time == timedelta(seconds=0)
+                else result_team.time
             ),
-            result_row["penalty_min"],
-            result_row["penalty"],
-            result_row["punches_points"],
-            result_row["total"],
-            *result_row["punches"],
+            result_team.penalty_min,
+            result_team.penalty,
+            result_team.punches_points,
+            result_team.total,
+            *result_team.punches,
         ]
 
         add_cells(tr, vals)
 
-        event_teams[result_row["id"]]["stages"][stage_name] = {
-            "time": result_row["time"],
-            "total": result_row["total"],
+        event_teams[result_team.id]["stages"][stage_name] = {
+            "time": result_team.time,
+            "total": result_team.total,
         }
 
     tree = ET.ElementTree(html)
@@ -308,13 +322,17 @@ class pos:
             (gender + age): 0 for (gender, age) in itertools.product(genders, ages)
         }
 
-    def get(self, row):
+    def get(self, team: Union[ResultTeam, dict]) -> tuple[int, int]:
         prank = ""
         srank = ""
+        if type(team) == ResultTeam:
+            team_id, age, gender = team.id, team.age, team.gender
+        elif type(team) == dict:
+            team_id, age, gender = team["id"], team["age"], team["gender"]
 
-        if row["id"] != "0" and not event_teams[row["id"]]["ignore"]:
-            primary = row["gender"] + "O"
-            secondary = row["gender"] + row["age"]
+        if team_id != "0" and not event_teams[team_id]["ignore"]:
+            primary = gender + "O"
+            secondary = gender + age
             self.positions[primary] += 1
             prank = primary + str(self.positions[primary])
 
@@ -362,22 +380,22 @@ def write_style():
         style_file.write(style)
 
 
-def sort_order_teams(row):
+def sort_order_teams(result_team: ResultTeam) -> tuple[str, int, timedelta, int]:
     """Generate a value, whose comparisons will determine the order of teams in stage results."""
 
     return (
         # Results are clustered into gender categories.
-        row["gender"],
+        result_team.gender,
         # Within them, the highest number of points wins.
-        -int(row["total"]),
+        -result_team.total,
         # When there is a tie, shortest time goes first.
         # People not running would have time=0 but we are already putting to the bottom
         # because they also have total=0.
-        row["time"],
+        result_team.time,
         # People running out of competition will be listed in the place
         # they would be if they competed but below of those who competed in case of a tie.
         # They will just not be assigned ranking by `pos` class.
-        int(event_teams.get(row["id"], {"ignore": True})["ignore"]),
+        int(event_teams.get(result_team.id, {"ignore": True})["ignore"]),
     )
 
 
