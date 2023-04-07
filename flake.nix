@@ -23,8 +23,10 @@
             pkgs.black
             pkgs.mypy
 
-            pkgs.csvkit
-            pkgs.python3
+            (pkgs.python3.withPackages (pp: [
+              pp.agate
+              pp.agate-excel
+            ]))
             pkgs.nodejs
           ];
         };

@@ -1,3 +1,5 @@
+import agate
+import agateexcel
 import csv
 import json
 import subprocess
@@ -40,11 +42,17 @@ sheets = {
 def csv_from_excel(file: Path, sheets: dict[str, str]) -> None:
     for sheet, target in sheets.items():
         file_name = target if target == "entries" else "Vysledky_" + target
-        with open(src / f"{file_name}.csv", "wb") as out:
-            subprocess.run(
-                ["in2csv", "--no-inference", "--sheet", sheet, file],
-                stdout=out,
-            )
+        table = agate.Table.from_xlsx(
+            file,
+            sheet=sheet,
+            column_types=agate.TypeTester(
+                types=[
+                    agate.Text(),
+                ],
+            ),
+        )
+        with open(src / f"{file_name}.csv", "w") as out:
+            table.to_csv(out)
 
 
 def main() -> None:
