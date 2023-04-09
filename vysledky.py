@@ -125,6 +125,20 @@ headers = [
     "Total points",
 ]
 
+SCROLLER_SCRIPT = """
+function pageScroll() {
+    if ((window.innerHeight + window.pageYOffset) >= document.body.offsetHeight) {
+        document.body.scrollTop = 0;
+    } else {
+        window.scrollBy(0,1);
+    }
+    scrolldelay = setTimeout(pageScroll, 30);
+}
+if (document.location.search === '?scroll') {
+    pageScroll();
+}
+"""
+
 event_teams: dict[TeamId, Team] = {}
 
 
@@ -142,6 +156,8 @@ def print_stage(
     head.append(style)
     meta = ET.Element("meta", attrib={"charset": "utf-8"})
     head.append(meta)
+    meta = ET.Element("meta", attrib={"http-equiv": "refresh", "content": "60"})
+    head.append(meta)
     title = ET.Element("title")
     title.text = event["name"] + " – " + stage["name"]
     head.append(title)
@@ -152,6 +168,11 @@ def print_stage(
     body.append(h1)
     table = ET.Element("table")
     body.append(table)
+
+    scroller = ET.Element("script")
+    scroller.text = SCROLLER_SCRIPT
+    body.append(scroller)
+
     thead = ET.Element("thead")
     table.append(thead)
     tr = ET.Element("tr")
@@ -291,6 +312,8 @@ def print_total() -> None:
     head.append(style)
     meta = ET.Element("meta", attrib={"charset": "utf-8"})
     head.append(meta)
+    meta = ET.Element("meta", attrib={"http-equiv": "refresh", "content": "60"})
+    head.append(meta)
     title = ET.Element("title")
     title.text = "Výsledky STB 2023"
     head.append(title)
@@ -301,6 +324,11 @@ def print_total() -> None:
     body.append(h1)
     table = ET.Element("table", attrib={"class": "foo"})
     body.append(table)
+
+    scroller = ET.Element("script")
+    scroller.text = SCROLLER_SCRIPT
+    body.append(scroller)
+
     thead = ET.Element("thead")
     table.append(thead)
     tr = ET.Element("tr")
