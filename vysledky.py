@@ -130,11 +130,11 @@ function pageScroll(jumpToTop) {
     let wait = false;
 
     if (jumpToTop) {
-        document.body.scrollTop = 0;
+        window.scrollTo(0, 0);
     } else {
         window.scrollBy(0, 1);
 
-        wait = (window.innerHeight + window.pageYOffset) >= document.body.offsetHeight;
+        wait = (window.innerHeight + window.scrollY) >= document.documentElement.offsetHeight;
     }
 
     if (wait) {
@@ -300,7 +300,9 @@ def print_stage(
 
     tree = ET.ElementTree(html)
     ET.indent(tree)
-    tree.write(dst / f"Vysledky_{stage_name}.html", encoding="utf8", method="html")
+    with open(dst / f"Vysledky_{stage_name}.html", "w") as file:
+        file.write("<!doctype html>\n")
+        tree.write(file, encoding="unicode", method="html")
 
 
 headers_tot = [
@@ -418,7 +420,9 @@ def print_total() -> None:
 
     tree = ET.ElementTree(html)
     ET.indent(tree)
-    tree.write(dst / "total.html", encoding="utf8", method="html")
+    with open(dst / "total.html", "w") as file:
+        file.write("<!doctype html>\n")
+        tree.write(file, encoding="unicode", method="html")
 
 
 class pos:
