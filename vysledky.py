@@ -304,6 +304,37 @@ def print_stage(
         file.write("<!doctype html>\n")
         tree.write(file, encoding="unicode", method="html")
 
+    with open(dst / f"pm_{stage_name}.csv", "w", newline="") as csvfile:
+        cps = list(stage["cps"].keys())
+        fieldnames = [
+            "Start Time",
+            "Team",
+            "Category",
+            "Member1",
+            "Member2",
+            "Time",
+            "Total points",
+        ] + cps
+
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=";")
+        writer.writeheader()
+        for result_team in result_data:
+            members = result_team.members
+            if result_team.time != timedelta(seconds=0):
+                row = {
+                    "Start Time": stage["start"],
+                    "Team": result_team.team,
+                    "Category": result_team.gender + result_team.age,
+                    "Member1": members[0],
+                    "Member2": members[1] if len(members) >= 2 else "",
+                    "Time": result_team.time,
+                    "Total points": result_team.total,
+                } | {
+                    cp: points if points != "0" else ""
+                    for cp, points in zip(cps, result_team.punches)
+                }
+                writer.writerow(row)
+
 
 headers_tot = [
     "Rank",
