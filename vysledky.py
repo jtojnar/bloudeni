@@ -126,16 +126,25 @@ headers = [
 ]
 
 SCROLLER_SCRIPT = """
-function pageScroll() {
-    if ((window.innerHeight + window.pageYOffset) >= document.body.offsetHeight) {
+function pageScroll(jumpToTop) {
+    let wait = false;
+
+    if (jumpToTop) {
         document.body.scrollTop = 0;
     } else {
-        window.scrollBy(0,1);
+        window.scrollBy(0, 1);
+
+        wait = (window.innerHeight + window.pageYOffset) >= document.body.offsetHeight;
     }
-    scrolldelay = setTimeout(pageScroll, 30);
+
+    if (wait) {
+        setTimeout(() => pageScroll(true), 5000);
+    } else {
+        setTimeout(() => pageScroll(false), 30);
+    }
 }
 if (document.location.search === '?scroll') {
-    pageScroll();
+    pageScroll(false);
 }
 """
 
