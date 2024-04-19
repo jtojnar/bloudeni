@@ -485,6 +485,11 @@ class pos:
 
 def write_style() -> None:
     style = """
+    html, body {
+        background: white;
+        color: black;
+    }
+
     table {
         border-collapse: collapse;
         border: 3px solid black;
