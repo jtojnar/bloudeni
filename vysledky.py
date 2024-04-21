@@ -497,6 +497,9 @@ def write_style() -> None:
 
     thead {
         border: 3px solid black;
+        position: sticky;
+        top: 0;
+        background: white;
     }
 
     td, th {
