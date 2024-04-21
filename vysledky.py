@@ -134,7 +134,7 @@ function pageScroll(jumpToTop) {
     } else {
         window.scrollBy(0, 1);
 
-        wait = (window.innerHeight + window.scrollY) >= document.documentElement.offsetHeight;
+        wait = Math.abs((window.innerHeight + window.scrollY) - document.documentElement.offsetHeight) < 1;
     }
 
     if (wait) {
