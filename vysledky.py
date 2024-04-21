@@ -513,7 +513,7 @@ def write_style() -> None:
         background: #ffc100;
     }
 
-    tr.gender-m + tr.gender-w, tr.gender-w + tr.gender-x {
+    tr.gender-M + tr.gender-W, tr.gender-W + tr.gender-X {
         border-top: 3px solid black;
     }
     body {
