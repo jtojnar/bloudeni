@@ -5,6 +5,7 @@
 		"N2H": {
 			"name": "výsledková listina páteční noční dvouhodinovky",
 			"short": "Stage 1 – Friday night 2hrs",
+			"csv_column": "friday2h",
 			"start": "21:00:00",
 			"duration": "2:00:00",
 			"penalty": 10,
@@ -13,6 +14,7 @@
 		"D5H": {
 			"name": "výsledková listina sobotní pětihodinovky",
 			"short": "Stage 2 – Saturday 5hrs",
+			"csv_column": "saturday5h",
 			"start": "10:30:00",
 			"duration": "5:00:00",
 			"penalty": 20,
@@ -21,6 +23,7 @@
 		"H4H": {
 			"name": "výsledková listina nedělní čtyřhodinovky",
 			"short": "Stage 3 – Sunday 4hrs",
+			"csv_column": "sunday4h",
 			"start": "09:00:00",
 			"duration": "4:00:00",
 			"penalty": 20,

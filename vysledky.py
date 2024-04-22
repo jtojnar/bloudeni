@@ -11,7 +11,7 @@ from functools import reduce
 from itertools import chain
 from math import ceil
 from pathlib import Path
-from typing import Optional, TypedDict, Union
+from typing import Optional, Sequence, TypedDict, Union
 from utils import format_time, optionals, parse_time, parse_timedelta
 from xml.etree import ElementTree as ET
 
@@ -46,6 +46,7 @@ class Stage(TypedDict):
     name: str
     short: str
     start: str
+    csv_column: str
     duration: str
     penalty: int
     cps: dict[str, int]
@@ -84,11 +85,26 @@ class ResultTeam:
 
 def add_cells(
     tr: ET.Element,
-    vals: list[Union[list[str], str, int, timedelta]],
+    vals: Sequence[
+        Union[
+            list[str],
+            str,
+            int,
+            timedelta,
+            tuple[Union[str, int, timedelta], bool],
+        ]
+    ],
 ) -> None:
     for val in vals:
-        td = ET.Element("td")
+        attrib = {}
+        match val:
+            case tuple((val, bool(dim))):
+                if dim:
+                    attrib["class"] = "not-participating"
+
+        td = ET.Element("td", attrib=attrib)
         tr.append(td)
+
         if isinstance(val, list):
             head, tail = val[0], val[1:]
             td.text = head
@@ -270,7 +286,15 @@ def print_stage(
 
     positions = pos()
     for result_team in result_data:
-        tr = ET.Element("tr", attrib={"class": "gender-" + result_team.gender})
+        not_participating = (
+            " not-participating"
+            if not event_teams[result_team.id].get(stage["csv_column"])
+            else ""
+        )
+        tr = ET.Element(
+            "tr",
+            attrib={"class": "gender-" + result_team.gender + not_participating},
+        )
         tbody.append(tr)
         vals: list[Union[list[str], str, int, timedelta]] = [
             *positions.get(result_team),
@@ -344,6 +368,13 @@ headers_tot = [
     "Category",
     "Members",
 ]
+
+
+def dim(
+    text: Union[str, int, timedelta],
+    dim: bool,
+) -> tuple[Union[str, int, timedelta], bool]:
+    return (text, dim)
 
 
 def print_total() -> None:
@@ -423,7 +454,15 @@ def print_total() -> None:
     for row in teams:
         tr = ET.Element("tr", attrib={"class": "gender-" + row["gender"]})
         tbody.append(tr)
-        vals: list[Union[list[str], str, int, timedelta]] = [
+        vals: list[
+            Union[
+                list[str],
+                str,
+                int,
+                timedelta,
+                tuple[Union[str, int, timedelta], bool],
+            ]
+        ] = [
             *positions.get(row),
             row["id"],
             row["team"],
@@ -440,8 +479,17 @@ def print_total() -> None:
             *itertools.chain.from_iterable(
                 [
                     [
-                        row["stages"].get(stage, {"total": ""})["total"],
-                        row["stages"].get(stage, {"time": ""})["time"],
+                        dim(
+                            row["stages"].get(stage, {"total": ""})["total"],
+                            not_participating := (
+                                stage != "total"
+                                and not row.get(event["stages"][stage]["csv_column"])
+                            ),
+                        ),
+                        dim(
+                            row["stages"].get(stage, {"time": ""})["time"],
+                            not_participating,
+                        ),
                     ]
                     for stage in list(event["stages"].keys()) + ["total"]
                 ]
@@ -506,6 +554,10 @@ def write_style() -> None:
         border: 1px solid black;
         padding: 0.2em;
         text-align: left;
+    }
+
+    .not-participating {
+        color: #555;
     }
 
     tbody tr:nth-child(odd) {
