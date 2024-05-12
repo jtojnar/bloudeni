@@ -33,9 +33,8 @@ src.mkdir(exist_ok=True)
 
 sheets = {
     "CSV Import": "entries",
-    "PRINT E1": "N2H",
-    "PRINT E2": "D5H",
-    "PRINT E3": "H4H",
+    "PRINT E1": "E1",
+    "PRINT E2": "E2",
 }
 
 
@@ -56,7 +55,7 @@ def csv_from_excel(file: Path, sheets: dict[str, str]) -> None:
 
 
 def main() -> None:
-    csv_from_excel(Path("Vysledky_Bloudeni_2024.xlsx"), sheets)
+    csv_from_excel(Path("Web_Vysledky_Kockogaining_2024.xlsx"), sheets)
 
     with open("event.json") as event_file:
         event = json.load(event_file)
@@ -66,9 +65,15 @@ def main() -> None:
     for stage_name, stage in stages.items():
         with open(src / f"Vysledky_{stage_name}.csv") as stage_file:
             reader = csv.DictReader(stage_file)
-            with open(src / f"punches-{stage_name}.json", "w") as punches_file:
+            times_cm = open(src / f"times-{stage_name}.json", "w")
+            punches_cm = open(src / f"punches-{stage_name}.json", "w")
+            with punches_cm as punches_file, times_cm as times_file:
                 punches = {}
+                times = {}
                 for row in reader:
+                    if row["id"] == "":
+                        continue
+                    times[row["id"]] = row["time"]
                     punches[row["id"]] = list(
                         filter(
                             lambda cp: cp is not None,
@@ -79,25 +84,7 @@ def main() -> None:
                         )
                     )
                 json.dump(punches, punches_file)
-
-        readouts_path = src / f"readouts-{stage_name}.csv"
-        if Path(readouts_path).exists():
-            readouts_cm = open(readouts_path, errors="ignore", encoding="utf-8")
-            times_cm = open(src / f"times-{stage_name}.json", "w")
-            with readouts_cm as readouts_file, times_cm as times_file:
-                readouts = csv.DictReader(readouts_file, delimiter=";")
-
-                json.dump(
-                    {
-                        row["SIID"].strip(): correct_time(
-                            row["Finish time"].strip() or "00:00:00",
-                            stage["start"],
-                            row["SIID"].strip(),
-                        )
-                        for row in readouts
-                    },
-                    times_file,
-                )
+                json.dump(times, times_file)
 
 
 if __name__ == "__main__":

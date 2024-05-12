@@ -5,6 +5,7 @@ from typing import TypeVar
 TIME_FORMAT = "%H:%M:%S"
 
 NO_DURATION = timedelta(hours=0)
+NO_TIME = datetime.strptime("0:00:00", TIME_FORMAT)
 
 T = TypeVar("T")
 

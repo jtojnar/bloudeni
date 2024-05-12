@@ -12,7 +12,7 @@ from itertools import chain
 from math import ceil
 from pathlib import Path
 from typing import Optional, Sequence, TypedDict, Union
-from utils import format_time, optionals, parse_time, parse_timedelta
+from utils import format_time, NO_TIME, optionals, parse_time, parse_timedelta
 from xml.etree import ElementTree as ET
 
 TeamId = str
@@ -29,7 +29,6 @@ class Team(TypedDict):
     skip: bool
     team: str
     id: TeamId
-    si: SportIdent
     stages: dict[str, TeamStageResult]
     gender: str
     age: str
@@ -37,9 +36,8 @@ class Team(TypedDict):
     member1fst: str
     member2lst: str
     member2fst: str
-    friday2h: bool
     saturday5h: bool
-    sunday4h: bool
+    sunday3h: bool
 
 
 class Stage(TypedDict):
@@ -71,7 +69,6 @@ class ResultTeam:
     team: str
     gender: str
     age: str
-    si: SportIdent
     members: list[str]
     stages: set[str]
     time: timedelta
@@ -130,15 +127,14 @@ headers = [
     "Rank",
     "Rank",
     "ID",
-    "Team",
-    "Category",
-    "SI Card",
-    "Members",
-    "Time",
-    "Penalty minutes",
-    "Penalty points",
-    "Found points",
-    "Total points",
+    "Tým",
+    "Kategorie",
+    "Členové",
+    "Čas",
+    "Trestné minuty",
+    "Trestné body",
+    "Nasbírané body",
+    "Celkové body",
 ]
 
 SCROLLER_SCRIPT = """
@@ -222,8 +218,8 @@ def print_stage(
 
         stage_start = parse_time(stage["start"])
         stage_duration = parse_timedelta(stage["duration"])
-        arrival = parse_time(times.get(team["si"], "00:00:00"), strip_milliseconds=True)
-        has_time = team["si"] in times
+        arrival = parse_time(times.get(team["id"], "00:00:00"), strip_milliseconds=True)
+        has_time = team["id"] in times and arrival != NO_TIME
         time = arrival - stage_start
         time_pre = time
         if has_time and time < timedelta(seconds=0):
@@ -246,9 +242,8 @@ def print_stage(
 
         stages = set(
             [
-                *optionals(team["friday2h"], ["N2H"]),
-                *optionals(team["saturday5h"], ["D5H"]),
-                *optionals(team["sunday4h"], ["H4H"]),
+                *optionals(team["saturday5h"], ["E1"]),
+                *optionals(team["sunday3h"], ["E2"]),
             ]
         )
 
@@ -258,7 +253,6 @@ def print_stage(
                 team=team["team"],
                 gender=team["gender"],
                 age=team["age"],
-                si=team["si"],
                 members=[
                     team["member1lst"] + " " + team["member1fst"],
                     *optionals(
@@ -301,7 +295,6 @@ def print_stage(
             result_team.id,
             result_team.team,
             result_team.gender + result_team.age,
-            result_team.si,
             result_team.members,
             (
                 "00:00:00"
@@ -331,13 +324,13 @@ def print_stage(
     with open(dst / f"pm_{stage_name}.csv", "w", newline="") as csvfile:
         cps = list(stage["cps"].keys())
         fieldnames = [
-            "Start Time",
-            "Team",
-            "Category",
-            "Member1",
-            "Member2",
-            "Time",
-            "Total points",
+            "Start. čas",
+            "Tým",
+            "Kategorie",
+            "Člen 1",
+            "Člen 2",
+            "Čas",
+            "Body celkem",
         ] + cps
 
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=";")
@@ -346,13 +339,13 @@ def print_stage(
             members = result_team.members
             if result_team.time != timedelta(seconds=0):
                 row = {
-                    "Start Time": stage["start"],
-                    "Team": result_team.team,
-                    "Category": result_team.gender + result_team.age,
-                    "Member1": members[0],
-                    "Member2": members[1] if len(members) >= 2 else "",
-                    "Time": result_team.time,
-                    "Total points": result_team.total,
+                    "Start. čas": stage["start"],
+                    "Tým": result_team.team,
+                    "Kategorie": result_team.gender + result_team.age,
+                    "Člen 1": members[0],
+                    "Člen 2": members[1] if len(members) >= 2 else "",
+                    "Čas": result_team.time,
+                    "Body celkem": result_team.total,
                 } | {
                     cp: points if points != "0" else ""
                     for cp, points in zip(cps, result_team.punches)
@@ -364,9 +357,9 @@ headers_tot = [
     "Rank",
     "Rank",
     "ID",
-    "Team",
-    "Category",
-    "Members",
+    "Tým",
+    "Kategorie",
+    "Členové",
 ]
 
 
@@ -388,12 +381,12 @@ def print_total() -> None:
     meta = ET.Element("meta", attrib={"http-equiv": "refresh", "content": "60"})
     head.append(meta)
     title = ET.Element("title")
-    title.text = "Výsledky STB 2024"
+    title.text = "Výsledky Kočkogainingu 2024"
     head.append(title)
     body = ET.Element("body")
     html.append(body)
     h1 = ET.Element("h1")
-    h1.text = "Výsledky STB 2024"
+    h1.text = "Výsledky Kočkogainingu 2024"
     body.append(h1)
     table = ET.Element("table", attrib={"class": "foo"})
     body.append(table)
@@ -413,14 +406,14 @@ def print_total() -> None:
         th.text = header
 
     short_stages = [event["stages"][stage]["short"] for stage in event["stages"]]
-    for header in short_stages + ["Total"]:
+    for header in short_stages + ["Celkem"]:
         th = ET.Element("th", attrib={"colspan": "2"})
         tr.append(th)
         th.text = header
 
     tr2 = ET.Element("tr")
     thead.append(tr2)
-    for header in ["Points", "Time"] * (len(event["stages"]) + 1):
+    for header in ["Body", "Čas"] * (len(event["stages"]) + 1):
         th = ET.Element("th")
         tr2.append(th)
         th.text = header
@@ -499,7 +492,7 @@ def print_total() -> None:
 
     tree = ET.ElementTree(html)
     ET.indent(tree)
-    with open(dst / "total.html", "w") as file:
+    with open(dst / "Vysledky_celkove.html", "w") as file:
         file.write("<!doctype html>\n")
         tree.write(file, encoding="unicode", method="html")
 
@@ -609,7 +602,6 @@ def main() -> None:
                     "skip": row.get("ignore", None) == "del",
                     "team": row["name"],
                     "id": row["#"],
-                    "si": row["sportident"],
                     "stages": {},
                     "gender": row["category"][0],
                     "age": row["category"][1],
@@ -617,9 +609,8 @@ def main() -> None:
                     "member1fst": row["m1firstname"],
                     "member2lst": row["m2lastname"],
                     "member2fst": row["m2firstname"],
-                    "friday2h": row["friday2h"] == "yes",
                     "saturday5h": row["saturday5h"] == "yes",
-                    "sunday4h": row["sunday4h"] == "yes",
+                    "sunday3h": row["sunday3h"] == "yes",
                 }
 
     for stage_name, stage in event["stages"].items():
