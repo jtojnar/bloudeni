@@ -388,12 +388,12 @@ def print_total() -> None:
     meta = ET.Element("meta", attrib={"http-equiv": "refresh", "content": "60"})
     head.append(meta)
     title = ET.Element("title")
-    title.text = "Výsledky STB 2024"
+    title.text = "Výsledky STB 2025"
     head.append(title)
     body = ET.Element("body")
     html.append(body)
     h1 = ET.Element("h1")
-    h1.text = "Výsledky STB 2024"
+    h1.text = "Výsledky STB 2025"
     body.append(h1)
     table = ET.Element("table", attrib={"class": "foo"})
     body.append(table)
