@@ -622,6 +622,8 @@ def main() -> None:
                     "sunday4h": row["sunday4h"] == "yes",
                 }
 
+    dst.mkdir(parents=True, exist_ok=True)
+
     for stage_name, stage in event["stages"].items():
         punches_cm = open(src / f"punches-{stage_name}.json")
         times_cm = open(src / f"times-{stage_name}.json")
