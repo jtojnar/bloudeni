@@ -145,7 +145,7 @@ headers = [
 
 SCROLLER_SCRIPT = """
 function pageScroll(jumpToTop) {
-    let wait = false;
+    var wait = false;
 
     if (jumpToTop) {
         window.scrollTo(0, 0);
@@ -156,9 +156,9 @@ function pageScroll(jumpToTop) {
     }
 
     if (wait) {
-        setTimeout(() => pageScroll(true), 5000);
+        setTimeout(function() { pageScroll(true); }, 5000);
     } else {
-        setTimeout(() => pageScroll(false), 30);
+        setTimeout(function() { pageScroll(false); }, 30);
     }
 }
 if (document.location.search === '?scroll') {
