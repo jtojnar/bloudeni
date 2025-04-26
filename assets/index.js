@@ -1,3 +1,5 @@
+const params = new URLSearchParams(window.location.search);
+
 function pageScroll(jumpToTop) {
   let wait = false;
 
@@ -25,6 +27,6 @@ function pageScroll(jumpToTop) {
   }
 }
 
-if (document.location.search === "?scroll") {
+if (params.has("scroll")) {
   pageScroll(false);
 }
