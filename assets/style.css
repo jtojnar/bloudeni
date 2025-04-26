@@ -43,3 +43,24 @@ tr.gender-W + tr.gender-X {
 body {
   font-family: sans-serif;
 }
+
+.menu {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 1em;
+  z-index: 1000;
+}
+
+.menu button {
+  font-size: 2em;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+@media print {
+  .menu {
+    display: none;
+  }
+}
