@@ -7,14 +7,13 @@ import operator
 import sys
 from collections import OrderedDict
 from dataclasses import dataclass
-from datetime import datetime
 from datetime import timedelta
 from functools import reduce
 from itertools import chain
 from math import ceil
 from pathlib import Path
 from typing import Optional, Sequence, TypedDict, Union
-from utils import format_time, optionals, parse_time, parse_timedelta
+from utils import format_time, optionals, parse_time
 from xml.etree import ElementTree as ET
 
 TeamId = str
@@ -223,7 +222,7 @@ def print_stage(
         team = event_teams[team_id]
 
         stage_start = parse_time(stage["start"])
-        stage_duration = parse_timedelta(stage["duration"])
+        stage_duration = parse_time(stage["duration"])
         arrival = parse_time(times.get(team["si"], "00:00:00"), strip_milliseconds=True)
         has_time = team["si"] in times
         time = arrival - stage_start

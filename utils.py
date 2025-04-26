@@ -1,10 +1,5 @@
-from datetime import datetime
 from datetime import timedelta
 from typing import TypeVar
-
-TIME_FORMAT = "%H:%M:%S"
-
-NO_DURATION = timedelta(hours=0)
 
 T = TypeVar("T")
 
@@ -16,22 +11,17 @@ def optionals(condition: bool, value: list[T]) -> list[T]:
         return []
 
 
-def parse_timedelta(time_string: str) -> timedelta:
-    try:
-        time = parse_time(time_string)
-        delta = timedelta(hours=time.hour, minutes=time.minute, seconds=time.second)
-    except:
-        delta = NO_DURATION
-
-    return delta
-
-
-def parse_time(time_string: str, strip_milliseconds: bool = False) -> datetime:
+def parse_time(time_string: str, strip_milliseconds: bool = False) -> timedelta:
     if strip_milliseconds:
         time_string = time_string.split(".", 1)[0]
 
-    return datetime.strptime(time_string, TIME_FORMAT)
+    h, m, s = map(int, time_string.split(":"))
+
+    return timedelta(hours=h, minutes=m, seconds=s)
 
 
-def format_time(time: datetime) -> str:
-    return time.strftime(TIME_FORMAT)
+def format_time(time: timedelta) -> str:
+    total_hours = time.days * 24 + time.seconds // 3600
+    minutes = (time.seconds % 3600) // 60
+    seconds = time.seconds % 60
+    return f"{total_hours}:{minutes:02}:{seconds:02}"
