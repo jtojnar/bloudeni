@@ -4,6 +4,7 @@ import csv
 import itertools
 import json
 import operator
+import shutil
 import sys
 from collections import OrderedDict
 from dataclasses import dataclass
@@ -118,6 +119,7 @@ def add_cells(
 
 
 dst = Path("out")
+assets = Path("assets")
 src = Path("data")
 
 with open("event.json") as event_file:
@@ -142,28 +144,6 @@ headers = [
     "Total points",
 ]
 
-SCROLLER_SCRIPT = """
-function pageScroll(jumpToTop) {
-    var wait = false;
-
-    if (jumpToTop) {
-        window.scrollTo(0, 0);
-    } else {
-        window.scrollBy(0, 1);
-
-        wait = Math.abs((window.innerHeight + window.scrollY) - document.documentElement.offsetHeight) < 1;
-    }
-
-    if (wait) {
-        setTimeout(function() { pageScroll(true); }, 5000);
-    } else {
-        setTimeout(function() { pageScroll(false); }, 30);
-    }
-}
-if (document.location.search === '?scroll') {
-    pageScroll(false);
-}
-"""
 
 event_teams: dict[TeamId, Team] = {}
 
@@ -195,9 +175,8 @@ def print_stage(
     table = ET.Element("table")
     body.append(table)
 
-    scroller = ET.Element("script")
-    scroller.text = SCROLLER_SCRIPT
-    body.append(scroller)
+    script = ET.Element("script", attrib={"src": "index.js"})
+    body.append(script)
 
     thead = ET.Element("thead")
     table.append(thead)
@@ -399,9 +378,8 @@ def print_total() -> None:
     table = ET.Element("table", attrib={"class": "foo"})
     body.append(table)
 
-    scroller = ET.Element("script")
-    scroller.text = SCROLLER_SCRIPT
-    body.append(scroller)
+    script = ET.Element("script", attrib={"src": "index.js"})
+    body.append(script)
 
     thead = ET.Element("thead")
     table.append(thead)
@@ -532,53 +510,9 @@ class pos:
         return (prank, srank)
 
 
-def write_style() -> None:
-    style = """
-    html, body {
-        background: white;
-        color: black;
-    }
-
-    table {
-        border-collapse: collapse;
-        border: 3px solid black;
-    }
-
-    thead {
-        border: 3px solid black;
-        position: sticky;
-        top: 0;
-        background: white;
-    }
-
-    td, th {
-        border: 1px solid black;
-        padding: 0.2em;
-        text-align: left;
-    }
-
-    .not-participating {
-        color: #555;
-    }
-
-    tbody tr:nth-child(odd) {
-        background: #ddd;
-    }
-
-    tbody tr:hover {
-        background: #ffc100;
-    }
-
-    tr.gender-M + tr.gender-W, tr.gender-W + tr.gender-X {
-        border-top: 3px solid black;
-    }
-    body {
-        font-family: sans-serif;
-    }
-    """
-
-    with open(dst / "style.css", "w") as style_file:
-        style_file.write(style)
+def copy_assets() -> None:
+    shutil.copy(assets / "style.css", dst / "style.css")
+    shutil.copy(assets / "index.js", dst / "index.js")
 
 
 def sort_order_teams(result_team: ResultTeam) -> tuple[str, int, timedelta, int]:
@@ -634,7 +568,7 @@ def main() -> None:
             print_stage(stage_name, event, event["stages"][stage_name], punches, times)
     print_total()
 
-    write_style()
+    copy_assets()
 
 
 if __name__ == "__main__":

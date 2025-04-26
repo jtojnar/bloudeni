@@ -1,0 +1,45 @@
+html,
+body {
+  background: white;
+  color: black;
+}
+
+table {
+  border-collapse: collapse;
+  border: 3px solid black;
+}
+
+thead {
+  border: 3px solid black;
+  position: sticky;
+  top: 0;
+  background: white;
+}
+
+td,
+th {
+  border: 1px solid black;
+  padding: 0.2em;
+  text-align: left;
+}
+
+.not-participating {
+  color: #555;
+}
+
+tbody tr:nth-child(odd) {
+  background: #ddd;
+}
+
+tbody tr:hover {
+  background: #ffc100;
+}
+
+tr.gender-M + tr.gender-W,
+tr.gender-W + tr.gender-X {
+  border-top: 3px solid black;
+}
+
+body {
+  font-family: sans-serif;
+}
