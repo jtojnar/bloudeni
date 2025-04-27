@@ -259,6 +259,66 @@ def print_stage(
             )
         )
 
+    si_cards_read_out = set(times.keys())
+
+    unknown_sis = si_cards_read_out - set(
+        team.si for team in result_data if stage_name in team.stages
+    )
+    if unknown_sis:
+        print(
+            "\n".join(
+                (
+                    f"Unknown SI time readouts found in stage {stage_name}:",
+                    *unknown_sis,
+                )
+            )
+        )
+
+    teams_without_times = [
+        f"- {team.id} {team.team} ({team.si})"
+        for team in result_data
+        if stage_name in team.stages and team.si not in si_cards_read_out
+    ]
+    if teams_without_times:
+        print(
+            "\n".join(
+                (
+                    f"Teams without SI time readout found in stage {stage_name}:",
+                    *teams_without_times,
+                )
+            )
+        )
+
+    teams_without_punches = [
+        f"- {team.id} {team.team}"
+        for team in result_data
+        if stage_name in team.stages and team.punches_points == 0
+    ]
+    if teams_without_punches:
+        print(
+            "\n".join(
+                (
+                    f"Teams without punches found in stage {stage_name}:",
+                    *teams_without_punches,
+                )
+            )
+        )
+
+    non_participating_teams_with_punches = [
+        f"- {team.id} {team.team}"
+        for team in result_data
+        if stage_name not in team.stages and team.punches_points != 0
+    ]
+    if non_participating_teams_with_punches:
+        print(
+            "\n".join(
+                (
+                    f"Teams not participating in stage {stage_name} with recorded control point visits found:",
+                    *non_participating_teams_with_punches,
+                )
+            )
+        )
+
     result_data = [team for team in result_data if not event_teams[team.id]["skip"]]
     result_data = sorted(result_data, key=sort_order_teams)
 
