@@ -162,8 +162,6 @@ def print_stage(
     head.append(style)
     meta = ET.Element("meta", attrib={"charset": "utf-8"})
     head.append(meta)
-    meta = ET.Element("meta", attrib={"http-equiv": "refresh", "content": "60"})
-    head.append(meta)
     title = ET.Element("title")
     title.text = event["name"] + " – " + stage["name"]
     head.append(title)
@@ -364,8 +362,6 @@ def print_total() -> None:
     style = ET.Element("link", attrib={"rel": "stylesheet", "href": "style.css"})
     head.append(style)
     meta = ET.Element("meta", attrib={"charset": "utf-8"})
-    head.append(meta)
-    meta = ET.Element("meta", attrib={"http-equiv": "refresh", "content": "60"})
     head.append(meta)
     title = ET.Element("title")
     title.text = "Výsledky STB 2025"

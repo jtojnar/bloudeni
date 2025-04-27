@@ -1,5 +1,7 @@
 const params = new URLSearchParams(window.location.search);
 
+let reloadUponGettingOnline = false;
+
 function pageScroll(jumpToTop) {
   let wait = false;
 
@@ -27,6 +29,12 @@ function pageScroll(jumpToTop) {
   }
 }
 
+window.addEventListener("online", function () {
+  if (reloadUponGettingOnline) {
+    window.location.reload();
+  }
+});
+
 function toggleParam(param) {
   if (params.has(param)) {
     params.delete(param);
@@ -41,12 +49,23 @@ if (params.has("scroll")) {
   pageScroll(false);
 }
 
+if (params.has("refresh")) {
+  setTimeout(function () {
+    if (navigator.onLine) {
+      window.location.reload();
+    } else {
+      reloadUponGettingOnline = true;
+    }
+  }, 5 * 1000);
+}
+
 if (!params.has("no-menu")) {
   const menu = document.createElement("div");
   menu.classList.add("menu");
 
   const buttons = [
     { param: "scroll", label: "↕️", title: "Toggle scroll" },
+    { param: "refresh", label: "🔄", title: "Toggle refresh" },
     { param: "no-menu", label: "🚫", title: "Hide menu" },
   ];
 
