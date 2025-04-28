@@ -78,6 +78,8 @@ def main() -> None:
             with open(src / f"punches-{stage_name}.json", "w") as punches_file:
                 punches = {}
                 for row in reader:
+                    if row["id"] == "0":
+                        break
                     punches[row["id"]] = list(
                         filter(
                             lambda cp: cp is not None,
