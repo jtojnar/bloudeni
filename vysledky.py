@@ -322,7 +322,7 @@ def print_stage(
         writer.writeheader()
         for result_team in result_data:
             members = result_team.members
-            if result_team.time != timedelta(seconds=0):
+            if stage_name in result_team.stages:
                 row = {
                     "Start Time": stage["start"],
                     "Team": result_team.team,
