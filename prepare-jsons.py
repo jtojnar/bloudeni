@@ -116,7 +116,7 @@ if __name__ == "__main__":
 
 
 class CorrectTimeTests(unittest.TestCase):
-    def test_night_before_midnight_si7(self):
+    def test_night_before_midnight_si7(self) -> None:
         self.assertEqual(
             "23:07:21",
             correct_time(
@@ -126,7 +126,7 @@ class CorrectTimeTests(unittest.TestCase):
             ),
         )
 
-    def test_night_before_midnight_si5(self):
+    def test_night_before_midnight_si5(self) -> None:
         self.assertEqual(
             "23:05:10",
             correct_time(
@@ -136,7 +136,7 @@ class CorrectTimeTests(unittest.TestCase):
             ),
         )
 
-    def test_night_over_midnight_si7(self):
+    def test_night_over_midnight_si7(self) -> None:
         self.assertEqual(
             "24:01:05",
             correct_time(
@@ -146,7 +146,7 @@ class CorrectTimeTests(unittest.TestCase):
             ),
         )
 
-    def test_night_over_midnight_si5(self):
+    def test_night_over_midnight_si5(self) -> None:
         self.assertEqual(
             "24:15:44",
             correct_time(
@@ -156,7 +156,7 @@ class CorrectTimeTests(unittest.TestCase):
             ),
         )
 
-    def test_exactly_midnight_si7(self):
+    def test_exactly_midnight_si7(self) -> None:
         self.assertEqual(
             "24:00:00",
             correct_time(
@@ -166,7 +166,7 @@ class CorrectTimeTests(unittest.TestCase):
             ),
         )
 
-    def test_exactly_midnight_si5(self):
+    def test_exactly_midnight_si5(self) -> None:
         self.assertEqual(
             "24:00:00",
             correct_time(
@@ -176,7 +176,7 @@ class CorrectTimeTests(unittest.TestCase):
             ),
         )
 
-    def test_no_adjustment_needed(self):
+    def test_no_adjustment_needed(self) -> None:
         self.assertEqual(
             "22:30:30",
             correct_time(
@@ -186,7 +186,7 @@ class CorrectTimeTests(unittest.TestCase):
             ),
         )
 
-    def test_almost_wraparound_si5(self):
+    def test_almost_wraparound_si5(self) -> None:
         self.assertEqual(
             "23:59:59",
             correct_time(
@@ -196,7 +196,7 @@ class CorrectTimeTests(unittest.TestCase):
             ),
         )
 
-    def test_small_time_si5(self):
+    def test_small_time_si5(self) -> None:
         self.assertEqual(
             "21:05:10",
             correct_time(
@@ -206,7 +206,7 @@ class CorrectTimeTests(unittest.TestCase):
             ),
         )
 
-    def test_exact_noon_si5(self):
+    def test_exact_noon_si5(self) -> None:
         self.assertEqual(
             "12:00:00",
             correct_time(
@@ -216,7 +216,7 @@ class CorrectTimeTests(unittest.TestCase):
             ),
         )
 
-    def test_after_noon_si5(self):
+    def test_after_noon_si5(self) -> None:
         self.assertEqual(
             "13:00:00",
             correct_time(
@@ -226,7 +226,7 @@ class CorrectTimeTests(unittest.TestCase):
             ),
         )
 
-    def test_exact_noon_si7(self):
+    def test_exact_noon_si7(self) -> None:
         self.assertEqual(
             "12:00:00",
             correct_time(
@@ -236,7 +236,7 @@ class CorrectTimeTests(unittest.TestCase):
             ),
         )
 
-    def test_before_noon_si5(self):
+    def test_before_noon_si5(self) -> None:
         self.assertEqual(
             "11:30:00",
             correct_time(
