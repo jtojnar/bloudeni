@@ -65,7 +65,7 @@ def csv_from_excel(file: Path, sheets: dict[str, str]) -> None:
 
 
 def main() -> None:
-    csv_from_excel(Path("Vysledky_Bloudeni_2025.xlsx"), sheets)
+    csv_from_excel(Path("Vysledky_Bloudeni_2026.xlsx"), sheets)
 
     with open("event.json") as event_file:
         event = json.load(event_file)
