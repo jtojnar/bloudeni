@@ -6,6 +6,7 @@ import json
 import operator
 import shutil
 import sys
+from collections.abc import Iterable
 from collections import OrderedDict
 from dataclasses import dataclass
 from datetime import timedelta
@@ -426,8 +427,6 @@ def print_stage(
 
 
 headers_tot = [
-    "Rank",
-    "Rank",
     "ID",
     "Team",
     "Category",
@@ -442,34 +441,15 @@ def dim(
     return (text, dim)
 
 
-def print_total() -> None:
-    html = ET.Element("html")
-    head = ET.Element("head")
-    html.append(head)
-    style = ET.Element("link", attrib={"rel": "stylesheet", "href": "style.css"})
-    head.append(style)
-    meta = ET.Element("meta", attrib={"charset": "utf-8"})
-    head.append(meta)
-    title = ET.Element("title")
-    title.text = "Výsledky STB 2026"
-    head.append(title)
-    body = ET.Element("body")
-    html.append(body)
-    h1 = ET.Element("h1")
-    h1.text = "Výsledky STB 2026"
-    body.append(h1)
+def table_total(*, rank_count: int) -> tuple[ET.Element, ET.Element]:
     table = ET.Element("table", attrib={"class": "foo"})
-    body.append(table)
-
-    script = ET.Element("script", attrib={"src": "index.js"})
-    body.append(script)
 
     thead = ET.Element("thead")
     table.append(thead)
     tr = ET.Element("tr")
     thead.append(tr)
 
-    for header in headers_tot:
+    for header in ["Rank"] * rank_count + headers_tot:
         th = ET.Element("th", attrib={"rowspan": "2"})
         tr.append(th)
         th.text = header
@@ -489,6 +469,76 @@ def print_total() -> None:
 
     tbody = ET.Element("tbody")
     table.append(tbody)
+
+    return table, tbody
+
+
+def total_vals(positions: Iterable[str], row: Team) -> list[
+    Union[
+        list[str],
+        str,
+        int,
+        timedelta,
+        tuple[Union[str, int, timedelta], bool],
+    ]
+]:
+    return [
+        *positions,
+        row["id"],
+        row["team"],
+        row["gender"] + row["age"],
+        [
+            row["member1lst"] + " " + row["member1fst"],
+            *optionals(
+                "member2lst" in row,
+                [
+                    row["member2lst"] + " " + row["member2fst"],
+                ],
+            ),
+        ],
+        *itertools.chain.from_iterable(
+            [
+                [
+                    dim(
+                        row["stages"].get(stage, {"total": ""})["total"],
+                        not_participating := (
+                            stage != "total"
+                            and not row.get(event["stages"][stage]["csv_column"])
+                        ),
+                    ),
+                    dim(
+                        row["stages"].get(stage, {"time": ""})["time"],
+                        not_participating,
+                    ),
+                ]
+                for stage in list(event["stages"].keys()) + ["total"]
+            ]
+        ),
+    ]
+
+
+def print_total() -> None:
+    html = ET.Element("html")
+    head = ET.Element("head")
+    html.append(head)
+    style = ET.Element("link", attrib={"rel": "stylesheet", "href": "style.css"})
+    head.append(style)
+    meta = ET.Element("meta", attrib={"charset": "utf-8"})
+    head.append(meta)
+    title = ET.Element("title")
+    title.text = "Výsledky STB 2026"
+    head.append(title)
+    body = ET.Element("body")
+    html.append(body)
+    h1 = ET.Element("h1")
+    h1.text = "Výsledky STB 2026"
+    body.append(h1)
+    table, tbody = table_total(rank_count=2)
+
+    body.append(table)
+
+    script = ET.Element("script", attrib={"src": "index.js"})
+    body.append(script)
 
     positions = pos()
     for team in event_teams:
@@ -516,52 +566,92 @@ def print_total() -> None:
     for row in teams:
         tr = ET.Element("tr", attrib={"class": "gender-" + row["gender"]})
         tbody.append(tr)
-        vals: list[
-            Union[
-                list[str],
-                str,
-                int,
-                timedelta,
-                tuple[Union[str, int, timedelta], bool],
-            ]
-        ] = [
-            *positions.get(row),
-            row["id"],
-            row["team"],
-            row["gender"] + row["age"],
-            [
-                row["member1lst"] + " " + row["member1fst"],
-                *optionals(
-                    "member2lst" in row,
-                    [
-                        row["member2lst"] + " " + row["member2fst"],
-                    ],
-                ),
-            ],
-            *itertools.chain.from_iterable(
-                [
-                    [
-                        dim(
-                            row["stages"].get(stage, {"total": ""})["total"],
-                            not_participating := (
-                                stage != "total"
-                                and not row.get(event["stages"][stage]["csv_column"])
-                            ),
-                        ),
-                        dim(
-                            row["stages"].get(stage, {"time": ""})["time"],
-                            not_participating,
-                        ),
-                    ]
-                    for stage in list(event["stages"].keys()) + ["total"]
-                ]
-            ),
-        ]
-        add_cells(tr, vals)
+        add_cells(
+            tr,
+            total_vals(positions.get(row), row),
+        )
 
     tree = ET.ElementTree(html)
     ET.indent(tree)
     with open(dst / "total.html", "w") as file:
+        file.write("<!doctype html>\n")
+        tree.write(file, encoding="unicode", method="html")
+
+
+def print_total_by_categories() -> None:
+    html = ET.Element("html")
+    head = ET.Element("head")
+    html.append(head)
+    style = ET.Element("link", attrib={"rel": "stylesheet", "href": "style.css"})
+    head.append(style)
+    meta = ET.Element("meta", attrib={"charset": "utf-8"})
+    head.append(meta)
+    title = ET.Element("title")
+    title.text = "Výsledky STB 2026"
+    head.append(title)
+    body = ET.Element("body")
+    html.append(body)
+    h1 = ET.Element("h1")
+    h1.text = "Výsledky STB 2026"
+    body.append(h1)
+
+    for team in event_teams:
+        event_teams[team]["stages"]["total"] = {
+            "time": reduce(
+                operator.add,
+                map(lambda stage: stage["time"], event_teams[team]["stages"].values()),
+                timedelta(),
+            ),
+            "total": sum(
+                map(lambda stage: stage["total"], event_teams[team]["stages"].values())
+            ),
+        }
+    teams = sorted(
+        event_teams.values(),
+        key=lambda row: (
+            row["gender"],
+            -int(row["stages"]["total"]["total"]),
+            row["stages"]["total"]["time"],
+        ),
+    )
+
+    teams = [row for row in teams if not event_teams[row["id"]]["skip"]]
+
+    for gender in genders:
+        for age in ages:
+            h1 = ET.Element("h2")
+            h1.text = f"{gender}{age}"
+            body.append(h1)
+
+            table, tbody = table_total(rank_count=1)
+            body.append(table)
+
+            category_teams = [
+                row
+                for row in teams
+                if row["gender"] == gender and (row["age"] == age or age == "O")
+            ]
+
+            position = 1
+
+            for row in category_teams:
+                pos = ""
+                team_id = row["id"]
+                winner = False
+                if team_id != "0" and not event_teams[team_id]["ignore"]:
+                    pos = str(position)
+                    winner = position <= 3
+                    position += 1
+                tr = ET.Element("tr", attrib={"class": "winner" if winner else ""})
+                tbody.append(tr)
+                add_cells(tr, total_vals([pos], row))
+
+    script = ET.Element("script", attrib={"src": "index.js"})
+    body.append(script)
+
+    tree = ET.ElementTree(html)
+    ET.indent(tree)
+    with open(dst / "total-split.html", "w") as file:
         file.write("<!doctype html>\n")
         tree.write(file, encoding="unicode", method="html")
 
@@ -623,6 +713,7 @@ def main() -> None:
             times = json.load(times_file)
             print_stage(stage_name, event, event["stages"][stage_name], punches, times)
     print_total()
+    print_total_by_categories()
 
     copy_assets()
 

@@ -40,6 +40,10 @@ tr.gender-W + tr.gender-X {
   border-top: 3px solid black;
 }
 
+tbody tr.winner {
+  background: yellow;
+}
+
 body {
   font-family: sans-serif;
 }
