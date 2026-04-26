@@ -85,6 +85,33 @@ class ResultTeam:
     ignore: bool
 
 
+class pos:
+    def __init__(self) -> None:
+        self.positions = {
+            (gender + age): 0 for (gender, age) in itertools.product(genders, ages)
+        }
+
+    def get(self, team: Union[ResultTeam, Team]) -> tuple[str, str]:
+        prank = ""
+        srank = ""
+        if type(team) == ResultTeam:
+            team_id, age, gender = team.id, team.age, team.gender
+        elif type(team) == dict:
+            team_id, age, gender = team["id"], team["age"], team["gender"]
+
+        if team_id != "0" and not event_teams[team_id]["ignore"]:
+            primary = gender + "O"
+            secondary = gender + age
+            self.positions[primary] += 1
+            prank = primary + str(self.positions[primary])
+
+            if secondary != primary:
+                self.positions[secondary] += 1
+                srank = secondary + str(self.positions[secondary])
+
+        return (prank, srank)
+
+
 def add_cells(
     tr: ET.Element,
     vals: Sequence[
@@ -537,33 +564,6 @@ def print_total() -> None:
     with open(dst / "total.html", "w") as file:
         file.write("<!doctype html>\n")
         tree.write(file, encoding="unicode", method="html")
-
-
-class pos:
-    def __init__(self) -> None:
-        self.positions = {
-            (gender + age): 0 for (gender, age) in itertools.product(genders, ages)
-        }
-
-    def get(self, team: Union[ResultTeam, Team]) -> tuple[str, str]:
-        prank = ""
-        srank = ""
-        if type(team) == ResultTeam:
-            team_id, age, gender = team.id, team.age, team.gender
-        elif type(team) == dict:
-            team_id, age, gender = team["id"], team["age"], team["gender"]
-
-        if team_id != "0" and not event_teams[team_id]["ignore"]:
-            primary = gender + "O"
-            secondary = gender + age
-            self.positions[primary] += 1
-            prank = primary + str(self.positions[primary])
-
-            if secondary != primary:
-                self.positions[secondary] += 1
-                srank = secondary + str(self.positions[secondary])
-
-        return (prank, srank)
 
 
 def copy_assets() -> None:
